@@ -1,0 +1,3992 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리반 운영 도우미</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .tab-button:hover {
+            background-color: #e5e7eb;
+        }
+        .tab-button.active:hover {
+            background-color: #2563eb;
+        }
+        
+        /* 시스템 설정 탭 스타일 개선 */
+        #adminSettings .grid {
+            gap: 1.5rem;
+        }
+        
+        #adminSettings .bg-white {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        
+        #adminSettings .bg-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        #adminSettings button {
+            transition: all 0.3s ease;
+        }
+        
+        #adminSettings button:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* 모달 스타일 개선 */
+        .fixed.inset-0 {
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        /* MBTI 답변 선택 스타일 */
+        .mbti-answer-option {
+            transition: all 0.2s ease;
+        }
+        
+        .mbti-answer-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(147, 51, 234, 0.1);
+        }
+        
+        .mbti-answer-option.selected {
+            border-color: rgb(147, 51, 234) !important;
+            background-color: rgb(243, 232, 255) !important;
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .mbti-radio-circle {
+            transition: all 0.2s ease;
+        }
+        
+        .mbti-radio-dot {
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- 헤더 -->
+    <header class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <i class="fas fa-chalkboard-teacher text-3xl text-blue-600 mr-3"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">우리반 운영 도우미</h1>
+                        <p class="text-sm text-gray-600">스마트한 교실 운영 관리 솔루션</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- 모드 전환 버튼 -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">모드:</span>
+                        <button id="modeSwitch" onclick="toggleMode()" class="flex items-center space-x-2 px-3 py-2 rounded-lg border-2 border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+                            <i class="fas fa-user-shield text-sm"></i>
+                            <span class="text-sm font-medium">관리자</span>
+                        </button>
+                    </div>
+                    <div class="text-right">
+                        <p id="modeStatus" class="text-sm text-gray-600">관리자 모드</p>
+                        <p class="text-xs text-gray-500">안전한 자리 관리</p>
+                    </div>
+                    <i id="modeIcon" class="fas fa-shield-alt text-2xl text-green-600"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 탭 네비게이션 -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button class="tab-button active px-6 py-4 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300" onclick="switchTab('home')">
+                    <i class="fas fa-home mr-2"></i>홈
+                </button>
+                <button class="tab-button px-6 py-4 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300" onclick="switchTab('seating')">
+                    <i class="fas fa-chair mr-2"></i>자리배치
+                </button>
+            <button class="tab-button px-6 py-4 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300" onclick="switchTab('diary')">
+                <i class="fas fa-heart mr-2"></i>마음의 일기장
+            </button>
+            <button class="tab-button px-6 py-4 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300" onclick="switchTab('mbti')">
+                <i class="fas fa-brain mr-2"></i>MBTI 검사
+            </button>
+            <button class="tab-button px-6 py-4 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300" onclick="switchTab('settings')">
+                <i class="fas fa-cog mr-2"></i>설정
+            </button>
+                <button class="tab-button px-6 py-4 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:text-gray-900 hover:border-gray-300" onclick="switchTab('help')">
+                    <i class="fas fa-question-circle mr-2"></i>도움말
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 홈 탭 -->
+        <div id="home" class="tab-content active">
+            <div class="text-center py-16">
+                <div class="mb-8">
+                    <i class="fas fa-school text-6xl text-blue-600 mb-6"></i>
+                    <h2 class="text-4xl font-bold text-gray-900 mb-4">우리반 운영 도우미</h2>
+                    <p class="text-xl text-gray-600 mb-8">스마트한 교실 운영 관리로 더 나은 교육 환경을 만들어보세요</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">시스템 개요</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-users text-blue-600 mr-2"></i>학생 관리
+                            </h4>
+                            <p class="text-gray-600 mb-4">학생 명단 관리, 자리 배치, 특수조건 설정을 통해 개별화된 교실 환경을 제공합니다.</p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-heart text-pink-600 mr-2"></i>감정 관리
+                            </h4>
+                            <p class="text-gray-600 mb-4">마음의 일기장을 통해 학생들의 감정을 파악하고 소통할 수 있습니다.</p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-brain text-purple-600 mr-2"></i>성격 분석
+                            </h4>
+                            <p class="text-gray-600 mb-4">MBTI 검사를 통해 학생들의 성격을 파악하고 맞춤형 교육 방향을 제시합니다.</p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-cog text-green-600 mr-2"></i>시스템 설정
+                            </h4>
+                            <p class="text-gray-600 mb-4">교실 환경, 보안 설정, 검사 결과 등을 통합 관리할 수 있습니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <p class="text-sm text-gray-500">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            상단의 탭 메뉴를 통해 각 기능에 바로 접근할 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 자리배치 탭 -->
+        <div id="seating" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">자리배치 시스템</h2>
+                <p class="text-lg text-gray-600">학생들의 자리를 공정하고 효율적으로 배정합니다.</p>
+            </div>
+
+            <!-- 자리배치 메인 컨테이너 -->
+            <div class="max-w-6xl mx-auto">
+                <!-- 자리배치 컨트롤 패널 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="text-center">
+                            <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-users text-2xl text-blue-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">학생 관리</h3>
+                            <p class="text-sm text-gray-600">학생 명단을 관리하고 특수조건을 설정합니다.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-chair text-2xl text-green-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">자리 배정</h3>
+                            <p class="text-sm text-gray-600">공정한 알고리즘으로 자리를 자동 배정합니다.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-cog text-2xl text-purple-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">설정 관리</h3>
+                            <p class="text-sm text-gray-600">교실 환경과 특수조건을 설정합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button onclick="openAdminFunction('studentModal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-users mr-2"></i>학생 명단 관리
+                        </button>
+                        <button onclick="openAdminFunction('classroomModal')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-school mr-2"></i>교실 설정
+                        </button>
+                        <button onclick="openAdminFunction('fixedSeatsModal')" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
+                            <i class="fas fa-lock mr-2"></i>고정 자리
+                        </button>
+                        <button onclick="openAdminFunction('specialConditionsModal')" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-cog mr-2"></i>특수조건
+                        </button>
+                        <button onclick="generateSeating()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-shuffle mr-2"></i>자리 배정하기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 자리배치 결과 표시 영역 -->
+                <div id="seatingResult" class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center text-gray-500">
+                        <i class="fas fa-chair text-4xl mb-4"></i>
+                        <p class="text-lg">자리배치를 시작하려면 위의 버튼들을 사용하세요.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MBTI 검사 탭 -->
+        <div id="mbti" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">MBTI 성격 검사</h2>
+                <p class="text-lg text-gray-600">나의 성격을 알아보는 재미있는 검사입니다!</p>
+            </div>
+
+            <!-- MBTI 검사 메인 컨테이너 -->
+            <div class="max-w-4xl mx-auto">
+                <!-- 검사 시작하기 섹션 -->
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-brain text-6xl text-purple-600 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">MBTI 성격 검사</h3>
+                        <p class="text-gray-600">총 12개의 질문으로 나의 성격을 알아보세요!</p>
+                    </div>
+                    
+                    <div id="mbtiTestContainer">
+                        <!-- 검사 시작 화면 -->
+                        <div id="mbtiStartScreen" class="text-center">
+                            <!-- 학생 선택 섹션 -->
+                            <div class="mb-6">
+                                <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                                    <h4 class="font-semibold text-blue-900 mb-3">검사할 학생을 선택해주세요</h4>
+                                    <div id="mbtiStudentSelection" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                        <!-- 학생 선택 버튼들이 여기에 동적으로 생성됩니다 -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <div class="bg-purple-50 rounded-lg p-4 mb-4">
+                                    <h4 class="font-semibold text-purple-900 mb-2">검사 안내</h4>
+                                    <ul class="text-sm text-purple-800 text-left space-y-1">
+                                        <li>• 각 질문에 대해 가장 가까운 답을 선택해주세요</li>
+                                        <li>• 정답은 없으니 솔직하게 답해주세요</li>
+                                        <li>• 검사는 약 5분 정도 소요됩니다</li>
+                                        <li>• 결과는 성격의 강점, 학습 방법, 추천 직업을 알려드려요!</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <button id="mbtiStartBtn" onclick="startMBTITest()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fas fa-play mr-2"></i>검사 시작하기
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- 검사 진행 화면 -->
+                <div id="mbtiTestScreen" class="hidden">
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <!-- 진행률 표시 -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">진행률</span>
+                                <span id="mbtiProgress" class="text-sm font-medium text-gray-700">1/12</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="mbtiProgressBar" class="bg-purple-600 h-2 rounded-full transition-all duration-300" style="width: 8.33%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 질문 표시 -->
+                        <div id="mbtiQuestionContainer" class="mb-8">
+                            <!-- 질문이 여기에 동적으로 표시됩니다 -->
+                        </div>
+
+                        <!-- 답변 선택 -->
+                        <div id="mbtiAnswerContainer" class="mb-8">
+                            <!-- 답변 선택지가 여기에 동적으로 표시됩니다 -->
+                        </div>
+
+                        <!-- 버튼 -->
+                        <div class="flex justify-between">
+                            <button id="mbtiPrevBtn" onclick="prevMBTIQuestion()" class="px-6 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors hidden">
+                                <i class="fas fa-arrow-left mr-2"></i>이전
+                            </button>
+                            <button id="mbtiNextBtn" onclick="nextMBTIQuestion()" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors ml-auto">
+                                다음 <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 화면 -->
+                <div id="mbtiResultScreen" class="hidden">
+                    <!-- 결과가 여기에 동적으로 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 설정 탭 -->
+        <div id="settings" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">시스템 설정</h2>
+                <p class="text-lg text-gray-600">자리배치 시스템의 다양한 설정을 관리할 수 있습니다.</p>
+            </div>
+
+            <!-- 관리자 모드일 때만 표시 -->
+            <div id="adminSettings" class="space-y-8" style="display: none;">
+                <!-- 관리자 기능 카드들 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- 학생 명단 수정 -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="text-center">
+                            <i class="fas fa-users text-3xl text-blue-600 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">학생 명단 수정</h3>
+                            <p class="text-gray-600 mb-4">학생 명단을 추가, 수정, 삭제할 수 있습니다.</p>
+                            <button onclick="openAdminFunction('studentModal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                명단 수정하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 교실 설정 -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="text-center">
+                            <i class="fas fa-door-open text-3xl text-green-600 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">교실 설정</h3>
+                            <p class="text-gray-600 mb-4">교실 크기와 책상 배치를 설정합니다.</p>
+                            <button onclick="openAdminFunction('classroomModal')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                교실 설정하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 고정 자리 설정 -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="text-center">
+                            <i class="fas fa-map-pin text-3xl text-purple-600 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">고정 자리 설정</h3>
+                            <p class="text-gray-600 mb-4">특정 학생의 자리를 고정할 수 있습니다.</p>
+                            <button onclick="openAdminFunction('fixedSeatsModal')" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                                고정 자리 설정
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 특수조건 설정 -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="text-center">
+                            <i class="fas fa-cogs text-3xl text-yellow-600 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">특수조건 설정</h3>
+                            <p class="text-gray-600 mb-4">학생별 특성과 배치 조건을 설정합니다.</p>
+                            <button onclick="openAdminFunction('specialConditionsModal')" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
+                                특수조건 설정
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 비밀번호 설정 -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center">
+                        <i class="fas fa-key text-3xl text-red-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">관리자 비밀번호 설정</h3>
+                        <p class="text-gray-600 mb-4">관리자 모드 진입 비밀번호를 변경할 수 있습니다.</p>
+                        <button onclick="openPasswordChangeModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            비밀번호 변경
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MBTI 검사 결과 관리 -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-chart-bar text-3xl text-indigo-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">MBTI 검사 결과 관리</h3>
+                        <p class="text-gray-600 mb-4">학생들의 MBTI 성격 검사 결과를 확인하고 관리할 수 있습니다.</p>
+                    </div>
+                    
+                    <div id="mbtiResultsContainer">
+                        <div class="text-center py-8">
+                            <i class="fas fa-clipboard-list text-4xl text-gray-400 mb-4"></i>
+                            <h4 class="text-lg font-semibold text-gray-700 mb-2">검사 결과가 없습니다</h4>
+                            <p class="text-sm text-gray-500 mb-4">학생들의 MBTI 검사 결과를 확인할 수 있습니다.</p>
+                            <button onclick="showMBTIResultsList()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold">
+                                <i class="fas fa-list mr-2"></i>전체 결과 보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 학생용 모드일 때 표시 -->
+            <div id="studentSettings" class="text-center py-12">
+                <i class="fas fa-lock text-6xl text-gray-400 mb-4"></i>
+                <h3 class="text-2xl font-semibold text-gray-600 mb-2">관리자 모드가 필요합니다</h3>
+                <p class="text-gray-500 mb-6">설정 기능을 사용하려면 관리자 모드로 전환해주세요.</p>
+                <button onclick="toggleMode()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    관리자 모드로 전환
+                </button>
+            </div>
+        </div>
+
+        <!-- 마음의 일기장 탭 -->
+        <div id="diary" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">마음의 일기장</h2>
+                <p class="text-lg text-gray-600">학생들의 마음을 담은 소중한 일기장입니다</p>
+            </div>
+
+            <!-- 일기장 기능 카드들 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- 일기 작성 -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center">
+                        <i class="fas fa-pen-fancy text-3xl text-blue-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">일기 작성</h3>
+                        <p class="text-gray-600 mb-4">오늘의 기분과 생각을 자유롭게 적어보세요.</p>
+                        <button onclick="openDiaryModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            일기 쓰기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 일기 목록 -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center">
+                        <i class="fas fa-list text-3xl text-green-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">일기 목록</h3>
+                        <p class="text-gray-600 mb-4">작성한 일기들을 날짜별로 확인할 수 있습니다.</p>
+                        <button onclick="showDiaryList()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            목록 보기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 감정 분석 -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center">
+                        <i class="fas fa-chart-pie text-3xl text-purple-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">감정 분석</h3>
+                        <p class="text-gray-600 mb-4">일기 내용을 바탕으로 감정 상태를 분석해드립니다.</p>
+                        <button onclick="showEmotionAnalysis()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            분석 보기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 달력 섹션 -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900">일기 달력</h3>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="previousMonth()" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="currentMonth" class="text-lg font-semibold text-gray-800"></span>
+                        <button onclick="nextMonth()" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 달력 그리드 -->
+                <div class="grid grid-cols-7 gap-1 mb-4">
+                    <div class="text-center py-2 text-sm font-medium text-gray-500">일</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-500">월</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-500">화</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-500">수</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-500">목</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-500">금</div>
+                    <div class="text-center py-2 text-sm font-medium text-gray-500">토</div>
+                </div>
+                
+                <div id="calendarGrid" class="grid grid-cols-7 gap-1">
+                    <!-- 달력 날짜들이 여기에 동적으로 생성됩니다 -->
+                </div>
+            </div>
+
+            <!-- 최근 일기 목록 -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">오늘의 일기</h3>
+                <div id="recentDiaries" class="space-y-4">
+                    <!-- 일기 목록이 여기에 동적으로 추가됩니다 -->
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-book-open text-4xl mb-4"></i>
+                        <p>아직 작성된 일기가 없습니다.</p>
+                        <p class="text-sm">첫 번째 일기를 작성해보세요!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 도움말 탭 -->
+        <div id="help" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">도움말</h2>
+                <p class="text-lg text-gray-600">자리배치 시스템 사용법을 자세히 알아보세요.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <div class="space-y-8">
+                    <!-- 기본 사용법 -->
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-play-circle text-blue-600 mr-2"></i>기본 사용법
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full mr-3 mt-1">1단계</span>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">학생 명단 설정</h4>
+                                    <p class="text-gray-600">"학생 명단 수정" 버튼을 클릭하여 학생 이름을 입력하세요.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full mr-3 mt-1">2단계</span>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">교실 설정</h4>
+                                    <p class="text-gray-600">"교실 설정" 버튼을 클릭하여 교실 크기와 책상 배치를 설정하세요.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full mr-3 mt-1">3단계</span>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">자리 배정</h4>
+                                    <p class="text-gray-600">"자리 다시 배정하기" 버튼을 클릭하여 랜덤 자리 배정을 실행하세요.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 특수조건 사용법 -->
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-star text-yellow-600 mr-2"></i>특수조건 사용법
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            <strong>관리자 인증이 필요합니다.</strong> 특수조건 설정을 위해서는 먼저 관리자 인증을 받아야 합니다.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-start">
+                                    <i class="fas fa-eye text-green-500 mr-3 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">시력 조건</h4>
+                                        <p class="text-gray-600">시력이 낮은 학생을 앞자리에 배치하여 칠판을 잘 볼 수 있도록 도와줍니다.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-ruler-vertical text-green-500 mr-3 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">키 조건</h4>
+                                        <p class="text-gray-600">키가 작은 학생을 앞자리에, 키가 큰 학생을 뒤자리에 배치합니다.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-graduation-cap text-green-500 mr-3 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">성적 조건</h4>
+                                        <p class="text-gray-600">성적이 낮은 학생을 앞자리에 배치하여 도움을 받을 수 있도록 합니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 문제 해결 -->
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-tools text-red-600 mr-2"></i>문제 해결
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-bug text-red-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-red-700">
+                                            <strong>자리배치가 제대로 되지 않을 때:</strong> 브라우저의 개발자 도구(F12)를 열고 Console 탭에서 오류 메시지를 확인하세요.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-start">
+                                    <i class="fas fa-refresh text-blue-500 mr-3 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">페이지 새로고침</h4>
+                                        <p class="text-gray-600">문제가 발생하면 브라우저를 새로고침(Ctrl+F5)해보세요.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-cog text-blue-500 mr-3 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">설정 초기화</h4>
+                                        <p class="text-gray-600">모든 설정을 초기화하고 처음부터 다시 시작해보세요.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 일기 작성 모달 -->
+    <div id="diaryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">일기 작성</h3>
+                    <button onclick="closeDiaryModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">작성자 이름</label>
+                        <input type="text" id="diaryAuthor" placeholder="이름을 입력하세요" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">날짜</label>
+                        <input type="date" id="diaryDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">제목</label>
+                        <input type="text" id="diaryTitle" placeholder="오늘의 제목을 입력하세요" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">오늘의 기분</label>
+                        <div class="flex space-x-4">
+                            <button onclick="setMood('happy')" class="mood-btn px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-yellow-400 hover:bg-yellow-50">
+                                <i class="fas fa-smile text-yellow-500 mr-2"></i>기쁨
+                            </button>
+                            <button onclick="setMood('sad')" class="mood-btn px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50">
+                                <i class="fas fa-frown text-blue-500 mr-2"></i>슬픔
+                            </button>
+                            <button onclick="setMood('angry')" class="mood-btn px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-red-400 hover:bg-red-50">
+                                <i class="fas fa-angry text-red-500 mr-2"></i>화남
+                            </button>
+                            <button onclick="setMood('calm')" class="mood-btn px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-green-400 hover:bg-green-50">
+                                <i class="fas fa-leaf text-green-500 mr-2"></i>평온
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">공개 설정</label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="diaryPrivacy" value="public" checked class="mr-2 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">공개</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="diaryPrivacy" value="private" class="mr-2 text-red-600 focus:ring-red-500">
+                                <span class="text-sm text-gray-700">비공개</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            비공개로 설정하면 관리자만 세부 내용을 확인할 수 있습니다.
+                        </p>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">일기 내용</label>
+                        <textarea id="diaryContent" rows="8" placeholder="오늘 하루는 어땠나요? 자유롭게 적어보세요..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeDiaryModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            취소
+                        </button>
+                        <button onclick="saveDiary()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 일기 목록 모달 -->
+    <div id="diaryListModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">일기 목록</h3>
+                    <button onclick="closeDiaryListModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div id="diaryListContent" class="space-y-4">
+                        <!-- 일기 목록이 여기에 동적으로 추가됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 감정 분석 모달 -->
+    <div id="emotionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">감정 분석</h3>
+                    <button onclick="closeEmotionModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div id="emotionAnalysisContent">
+                        <!-- 감정 분석 결과가 여기에 표시됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관리자 인증 모달 -->
+    <div id="adminAuthModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">관리자 인증</h3>
+                    <button onclick="hideAdminAuthModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
+                        <input type="password" id="adminPasswordInput" placeholder="관리자 비밀번호를 입력하세요" 
+                               autocomplete="new-password" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="text-xs text-gray-500 mb-4">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        기본 비밀번호: admin123
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="hideAdminAuthModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            취소
+                        </button>
+                        <button onclick="authenticateAdmin()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            인증하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 변경 모달 -->
+    <div id="passwordChangeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">비밀번호 변경</h3>
+                    <button onclick="hidePasswordChangeModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">현재 비밀번호</label>
+                        <input type="password" id="currentPassword" placeholder="현재 비밀번호를 입력하세요" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">새 비밀번호</label>
+                        <input type="password" id="newPassword" placeholder="새 비밀번호를 입력하세요" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">비밀번호 확인</label>
+                        <input type="password" id="confirmPassword" placeholder="새 비밀번호를 다시 입력하세요" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="hidePasswordChangeModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            취소
+                        </button>
+                        <button onclick="changePassword()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            변경하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 날짜별 상세 일기 모달 -->
+    <div id="dateDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900" id="dateDetailTitle">날짜별 상세 일기</h3>
+                    <button onclick="closeDateDetailModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div id="dateDetailContent">
+                        <!-- 날짜별 상세 일기 내용이 여기에 표시됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 학생 명단 수정 모달 -->
+    <div id="studentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto modal-content">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">학생 명단 수정</h3>
+                    <button onclick="closeStudentModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">남학생 명단</h4>
+                        <div id="maleStudentsList" class="space-y-3">
+                            <!-- 남학생 목록이 여기에 동적으로 표시됩니다 -->
+                        </div>
+                        <button onclick="addMaleStudent()" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>남학생 추가
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">여학생 명단</h4>
+                        <div id="femaleStudentsList" class="space-y-3">
+                            <!-- 여학생 목록이 여기에 동적으로 표시됩니다 -->
+                        </div>
+                        <button onclick="addFemaleStudent()" class="mt-3 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>여학생 추가
+                        </button>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeStudentModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            취소
+                        </button>
+                        <button onclick="saveStudents()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 교실 설정 모달 -->
+    <div id="classroomModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full modal-content">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">교실 설정</h3>
+                    <button onclick="closeClassroomModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">가로 책상 수</label>
+                            <input type="number" id="classroomCols" min="1" max="10" value="6" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">세로 책상 수</label>
+                            <input type="number" id="classroomRows" min="1" max="10" value="4" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">교실 미리보기</h4>
+                        <div id="classroomPreview" class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <!-- 교실 미리보기가 여기에 표시됩니다 -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeClassroomModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            취소
+                        </button>
+                        <button onclick="saveClassroom()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 고정 자리 설정 모달 -->
+    <div id="fixedSeatsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto modal-content">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">고정 자리 설정</h3>
+                    <button onclick="closeFixedSeatsModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">고정 자리 설정</h4>
+                        <div id="fixedSeatsList" class="space-y-4">
+                            <!-- 고정 자리 목록이 여기에 동적으로 표시됩니다 -->
+                        </div>
+                        <button onclick="addFixedSeat()" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>고정 자리 추가
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">자리 배치도</h4>
+                        <div id="fixedSeatsPreview" class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <!-- 자리 배치도가 여기에 표시됩니다 -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeFixedSeatsModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            취소
+                        </button>
+                        <button onclick="saveFixedSeats()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                            저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 특수조건 설정 모달 -->
+    <div id="specialConditionsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[80vh] overflow-y-auto modal-content">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-xl font-semibold text-gray-900">특수조건 설정</h3>
+                    <button onclick="closeSpecialConditionsModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- 학생별 특성 설정 -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">학생별 특성 설정</h4>
+                            <div id="studentProperties" class="space-y-4">
+                                <!-- 학생별 특성이 여기에 동적으로 표시됩니다 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 특수조건 설정 -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">특수조건 설정</h4>
+                            <div class="space-y-6">
+                                <!-- 분리 조건 -->
+                                <div>
+                                    <h5 class="font-semibold text-gray-800 mb-2">분리 조건 (같이 앉으면 안 되는 학생들)</h5>
+                                    <div id="separationPairs" class="space-y-3">
+                                        <!-- 분리 조건이 여기에 동적으로 표시됩니다 -->
+                                    </div>
+                                    <button onclick="addSeparationPair()" class="mt-2 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                        <i class="fas fa-plus mr-1"></i>분리 조건 추가
+                                    </button>
+                                </div>
+                                
+                                <!-- 짝 조건 -->
+                                <div>
+                                    <h5 class="font-semibold text-gray-800 mb-2">짝 조건 (같이 앉아야 하는 학생들)</h5>
+                                    <div id="pairingGroups" class="space-y-3">
+                                        <!-- 짝 조건이 여기에 동적으로 표시됩니다 -->
+                                    </div>
+                                    <button onclick="addPairingGroup()" class="mt-2 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                        <i class="fas fa-plus mr-1"></i>짝 조건 추가
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 mt-8">
+                        <button onclick="closeSpecialConditionsModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            취소
+                        </button>
+                        <button onclick="saveSpecialConditions()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+                            저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h3 class="text-lg font-semibold mb-2">우리반 운영 도우미</h3>
+                <p class="text-gray-400 text-sm">스마트한 교실 운영 관리 솔루션</p>
+                <p class="text-gray-500 text-xs mt-2">© 2024 All rights reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 탭 전환 함수
+        function switchTab(tabName) {
+            // 모든 탭 콘텐츠 숨기기
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 모든 탭 버튼 비활성화
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // 선택된 탭 콘텐츠 보이기
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+
+            // 선택된 탭 버튼 활성화
+            const selectedButton = event ? event.target : document.querySelector(`[onclick="switchTab('${tabName}')"]`);
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
+            
+            // 탭별 특별 처리
+            if (tabName === 'diary') {
+                updateRecentDiaries();
+                renderCalendar();
+            } else if (tabName === 'settings') {
+                updateSettingsDisplay();
+                updateMBTIResultsSection();
+            } else if (tabName === 'mbti') {
+                // MBTI 탭으로 전환 시 학생 선택 화면 로드
+                loadMBTIStudentSelection();
+            } else if (tabName === 'seating') {
+                // 자리배치 탭으로 전환 시 iframe 로드 확인
+                console.log('자리배치 탭 활성화');
+                setTimeout(() => {
+                    const iframe = document.querySelector('iframe[src="index.html"]');
+                    if (iframe) {
+                        console.log('자리배치 iframe 로드 확인');
+                        iframe.onload = function() {
+                            console.log('자리배치 iframe 로드 완료');
+                        };
+                    }
+                }, 100);
+            }
+        }
+
+        // 일기장 관련 변수
+        let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+        let selectedMood = '';
+
+        // 달력 관련 변수
+        let currentDate = new Date();
+        let currentYear = currentDate.getFullYear();
+        let currentMonth = currentDate.getMonth();
+
+        // 모드 관련 변수
+        let isAdminMode = localStorage.getItem('isAdminMode') === 'true' || localStorage.getItem('isAdminMode') === null; // localStorage에서 불러오기 (처음 방문시 관리자 모드)
+
+        // MBTI 검사 관련 변수
+        let mbtiCurrentQuestion = 0;
+        let mbtiAnswers = [];
+        let mbtiSelectedStudent = null;
+        let mbtiResults = JSON.parse(localStorage.getItem('mbtiResults') || '{}');
+        let mbtiQuestions = [
+            {
+                question: "새로운 친구를 만날 때 나는?",
+                answers: [
+                    { text: "먼저 말을 걸어서 친해지려고 해", type: "E" },
+                    { text: "상대방이 먼저 말을 걸어주길 기다려", type: "I" }
+                ]
+            },
+            {
+                question: "숙제를 할 때 나는?",
+                answers: [
+                    { text: "친구들과 함께 하면서 재미있게 해", type: "E" },
+                    { text: "혼자 조용한 곳에서 집중해서 해", type: "I" }
+                ]
+            },
+            {
+                question: "새로운 것을 배울 때 나는?",
+                answers: [
+                    { text: "실제로 해보면서 배우는 것을 좋아해", type: "S" },
+                    { text: "이론을 먼저 이해하고 나서 해보는 것을 좋아해", type: "N" }
+                ]
+            },
+            {
+                question: "문제를 해결할 때 나는?",
+                answers: [
+                    { text: "단계별로 차근차근 해결해", type: "S" },
+                    { text: "새로운 방법을 생각해서 해결해", type: "N" }
+                ]
+            },
+            {
+                question: "친구와 다툰 후 나는?",
+                answers: [
+                    { text: "객관적으로 누가 잘못했는지 판단해", type: "T" },
+                    { text: "상대방의 기분을 먼저 생각해", type: "F" }
+                ]
+            },
+            {
+                question: "중요한 결정을 할 때 나는?",
+                answers: [
+                    { text: "논리적으로 생각해서 결정해", type: "T" },
+                    { text: "마음이 편한 쪽으로 결정해", type: "F" }
+                ]
+            },
+            {
+                question: "일정을 세울 때 나는?",
+                answers: [
+                    { text: "미리 계획을 세우고 그대로 따라해", type: "J" },
+                    { text: "그때그때 상황에 맞춰서 해", type: "P" }
+                ]
+            },
+            {
+                question: "여행을 갈 때 나는?",
+                answers: [
+                    { text: "미리 계획을 세우고 준비물을 꼼꼼히 챙겨", type: "J" },
+                    { text: "즉흥적으로 가고 싶은 곳으로 가", type: "P" }
+                ]
+            },
+            {
+                question: "새로운 게임을 할 때 나는?",
+                answers: [
+                    { text: "친구들과 함께 하면서 배워", type: "E" },
+                    { text: "혼자 연습해서 익숙해진 후 친구들과 해", type: "I" }
+                ]
+            },
+            {
+                question: "수업 시간에 나는?",
+                answers: [
+                    { text: "선생님의 설명을 차근차근 따라해", type: "S" },
+                    { text: "이해가 안 되면 질문을 많이 해", type: "N" }
+                ]
+            },
+            {
+                question: "친구가 실수했을 때 나는?",
+                answers: [
+                    { text: "실수한 부분을 정확히 지적해줘", type: "T" },
+                    { text: "괜찮다고 위로해주고 도와줘", type: "F" }
+                ]
+            },
+            {
+                question: "방 정리를 할 때 나는?",
+                answers: [
+                    { text: "정해진 자리에 정리해서 놓아", type: "J" },
+                    { text: "편한 곳에 두고 나중에 정리해", type: "P" }
+                ]
+            }
+        ];
+
+        // 모드 전환 함수
+        function toggleMode() {
+            if (!isAdminMode) {
+                // 학생용 모드에서 관리자 모드로 전환 시 비밀번호 인증
+                showAdminAuthModal();
+            } else {
+                // 관리자 모드에서 학생용 모드로 전환
+                isAdminMode = false;
+                localStorage.setItem('isAdminMode', 'false');
+                updateModeUI();
+                updateModeBasedContent();
+                updateSettingsDisplay();
+            }
+        }
+
+        // 관리자 인증 모달 표시
+        function showAdminAuthModal() {
+            document.getElementById('adminAuthModal').classList.remove('hidden');
+        }
+
+        // 관리자 인증 모달 숨기기
+        function hideAdminAuthModal() {
+            document.getElementById('adminAuthModal').classList.add('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        // 관리자 인증
+        function authenticateAdmin() {
+            const password = document.getElementById('adminPasswordInput').value;
+            const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
+            
+            if (password === storedPassword) {
+                isAdminMode = true;
+                localStorage.setItem('isAdminMode', 'true');
+                updateModeUI();
+                updateModeBasedContent();
+                updateSettingsDisplay();
+                hideAdminAuthModal();
+                showNotification('관리자 모드로 전환되었습니다.', 'success');
+            } else {
+                showNotification('비밀번호가 올바르지 않습니다.', 'error');
+            }
+        }
+
+        // 모드 UI 업데이트
+        function updateModeUI() {
+            const modeSwitch = document.getElementById('modeSwitch');
+            const modeStatus = document.getElementById('modeStatus');
+            const modeIcon = document.getElementById('modeIcon');
+
+            if (isAdminMode) {
+                // 관리자 모드
+                modeSwitch.innerHTML = '<i class="fas fa-user-shield text-sm"></i><span class="text-sm font-medium">관리자</span>';
+                modeSwitch.className = 'flex items-center space-x-2 px-3 py-2 rounded-lg border-2 border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors';
+                modeStatus.textContent = '관리자 모드';
+                modeIcon.className = 'fas fa-shield-alt text-2xl text-green-600';
+            } else {
+                // 학생용 모드
+                modeSwitch.innerHTML = '<i class="fas fa-user text-sm"></i><span class="text-sm font-medium">학생용</span>';
+                modeSwitch.className = 'flex items-center space-x-2 px-3 py-2 rounded-lg border-2 border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors';
+                modeStatus.textContent = '학생용 모드';
+                modeIcon.className = 'fas fa-user text-2xl text-purple-600';
+            }
+        }
+
+        // 모드에 따른 콘텐츠 업데이트
+        function updateModeBasedContent() {
+            // 자리배치 iframe 내부의 모드도 업데이트 (필요한 경우)
+            const seatingIframe = document.querySelector('iframe[src="index.html"]');
+            if (seatingIframe && seatingIframe.contentWindow) {
+                try {
+                    seatingIframe.contentWindow.postMessage({
+                        type: 'modeChange',
+                        isAdmin: isAdminMode
+                    }, '*');
+                } catch (e) {
+                    console.log('자리배치 페이지와 통신할 수 없습니다.');
+                }
+            }
+        }
+
+        // 설정 탭 표시 업데이트
+        function updateSettingsDisplay() {
+            const adminSettings = document.getElementById('adminSettings');
+            const studentSettings = document.getElementById('studentSettings');
+            
+            if (isAdminMode) {
+                adminSettings.style.display = 'block';
+                studentSettings.style.display = 'none';
+            } else {
+                adminSettings.style.display = 'none';
+                studentSettings.style.display = 'block';
+            }
+        }
+
+        // iframe 로드 상태 확인
+        function checkIframeLoaded() {
+            const seatingIframe = document.querySelector('iframe[src="index.html"]');
+            if (seatingIframe && seatingIframe.contentWindow) {
+                return true;
+            }
+            return false;
+        }
+
+        // iframe이 로드될 때까지 기다리는 함수
+        function waitForIframeLoad(callback, maxAttempts = 10) {
+            let attempts = 0;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                console.log(`iframe 로드 확인 시도 ${attempts}/${maxAttempts}`);
+                
+                if (checkIframeLoaded()) {
+                    console.log('iframe 로드 완료');
+                    clearInterval(checkInterval);
+                    callback();
+                } else if (attempts >= maxAttempts) {
+                    console.log('iframe 로드 타임아웃');
+                    clearInterval(checkInterval);
+                    showNotification('자리배치 페이지 로드에 시간이 걸리고 있습니다. 잠시 후 다시 시도해주세요.', 'error');
+                }
+            }, 500);
+        }
+
+        // 관리자 기능 열기 (로컬 모달)
+        function openAdminFunction(modalName) {
+            console.log('=== 관리자 기능 열기 시작 ===');
+            console.log('요청된 모달:', modalName);
+            console.log('관리자 모드:', isAdminMode);
+            
+            if (!isAdminMode) {
+                console.log('관리자 모드가 아님 - 에러 표시');
+                showNotification('관리자 모드가 필요합니다.', 'error');
+                return;
+            }
+            
+            // 각 모달에 맞는 동기화 함수 호출
+            if (modalName === 'studentModal') {
+                openStudentModal();
+            } else if (modalName === 'classroomModal') {
+                openClassroomModal();
+            } else if (modalName === 'fixedSeatsModal') {
+                openFixedSeatsModal();
+            } else if (modalName === 'specialConditionsModal') {
+                openSpecialConditionsModal();
+            } else {
+                // 기본 모달 열기
+                const modal = document.getElementById(modalName);
+                if (modal) {
+                    console.log('로컬 모달 열기:', modalName);
+                    modal.classList.remove('hidden');
+                    showNotification(`${modalName} 모달을 열었습니다.`, 'success');
+                } else {
+                    console.error('모달을 찾을 수 없음:', modalName);
+                    showNotification('모달을 찾을 수 없습니다.', 'error');
+                }
+            }
+        }
+
+        // 비밀번호 변경 모달 열기
+        function openPasswordChangeModal() {
+            document.getElementById('passwordChangeModal').classList.remove('hidden');
+        }
+
+        // 학생 명단 모달 닫기
+        function closeStudentModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+
+        // 교실 설정 모달 닫기
+        function closeClassroomModal() {
+            document.getElementById('classroomModal').classList.add('hidden');
+        }
+
+        // 고정 자리 모달 닫기
+        function closeFixedSeatsModal() {
+            document.getElementById('fixedSeatsModal').classList.add('hidden');
+        }
+
+        // 특수조건 모달 닫기
+        function closeSpecialConditionsModal() {
+            document.getElementById('specialConditionsModal').classList.add('hidden');
+        }
+
+        // 전역 변수 선언
+        let maleStudents, femaleStudents, classroomConfig, fixedSeats, studentProperties, separationPairs, pairingGroups;
+        
+        // 변수 초기화 함수
+        function initializeVariables() {
+            // 학생 명단 초기화
+            maleStudents = JSON.parse(localStorage.getItem('maleStudents')) || [
+                '김민수', '이준호', '박성민', '최동현', '정태영', '한지훈',
+                '강민재', '윤서준', '임도현', '조현우', '신재민', '오승호'
+            ];
+            femaleStudents = JSON.parse(localStorage.getItem('femaleStudents')) || [
+                '김지은', '이서연', '박민지', '최수진', '정하늘', '한소영',
+                '강예린', '윤지우', '임다은', '조서현', '신채원', '오유나'
+            ];
+            
+            // 교실 설정 초기화
+            classroomConfig = JSON.parse(localStorage.getItem('classroomConfig')) || {
+                rows: 4,
+                cols: 6
+            };
+            
+            // 고정 자리 초기화
+            fixedSeats = JSON.parse(localStorage.getItem('fixedSeats')) || [];
+            
+            // 특수조건 초기화
+            studentProperties = JSON.parse(localStorage.getItem('studentProperties')) || {};
+            separationPairs = JSON.parse(localStorage.getItem('separationPairs')) || [];
+            pairingGroups = JSON.parse(localStorage.getItem('pairingGroups')) || [];
+            
+            console.log('변수 초기화 완료:', {
+                maleStudents: maleStudents.length,
+                femaleStudents: femaleStudents.length,
+                classroomConfig,
+                fixedSeats: fixedSeats.length
+            });
+        }
+
+        // 자리배치 생성 함수
+        function generateSeating() {
+            console.log('자리배치 생성 시작');
+            
+            // 변수 초기화 확인
+            if (!maleStudents || !femaleStudents) {
+                console.log('변수가 초기화되지 않음, 재초기화 시도');
+                initializeVariables();
+            }
+            
+            // 학생 데이터 확인
+            if (!maleStudents || !femaleStudents) {
+                alert('학생 명단이 설정되지 않았습니다. 먼저 학생 명단을 관리해주세요.');
+                return;
+            }
+            
+            const totalStudents = maleStudents.length + femaleStudents.length;
+            if (totalStudents === 0) {
+                alert('학생이 등록되지 않았습니다. 먼저 학생을 추가해주세요.');
+                return;
+            }
+            
+            // 교실 설정 확인
+            if (!classroomConfig || !classroomConfig.rows || !classroomConfig.cols) {
+                alert('교실 설정이 완료되지 않았습니다. 먼저 교실을 설정해주세요.');
+                return;
+            }
+            
+            const totalSeats = classroomConfig.rows * classroomConfig.cols;
+            if (totalSeats < totalStudents) {
+                alert(`교실 자리가 부족합니다. (필요: ${totalStudents}명, 현재: ${totalSeats}자리)`);
+                return;
+            }
+            
+            // 자리배치 생성
+            try {
+                const seating = createSeatingArrangement();
+                displaySeatingResult(seating);
+                console.log('자리배치 완료:', seating);
+            } catch (error) {
+                console.error('자리배치 생성 오류:', error);
+                alert('자리배치 생성 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 자리배치 알고리즘
+        function createSeatingArrangement() {
+            const allStudents = [...maleStudents, ...femaleStudents];
+            const rows = classroomConfig.rows;
+            const cols = classroomConfig.cols;
+            const totalSeats = rows * cols;
+            
+            // 자리 배열 초기화
+            const seats = new Array(totalSeats).fill(null);
+            
+            // 고정 자리 배정
+            if (fixedSeats && Array.isArray(fixedSeats) && fixedSeats.length > 0) {
+                fixedSeats.forEach(fixedSeat => {
+                    const seatIndex = (fixedSeat.row - 1) * cols + (fixedSeat.col - 1);
+                    if (seatIndex >= 0 && seatIndex < totalSeats) {
+                        seats[seatIndex] = fixedSeat.student;
+                    }
+                });
+            }
+            
+            // 남은 자리에 학생 배정
+            const availableStudents = allStudents.filter(student => 
+                !fixedSeats || !Array.isArray(fixedSeats) || !fixedSeats.some(fixed => fixed.student === student)
+            );
+            
+            // 랜덤 셔플
+            const shuffledStudents = [...availableStudents].sort(() => Math.random() - 0.5);
+            
+            // 빈 자리에 학생 배정
+            let studentIndex = 0;
+            for (let i = 0; i < totalSeats && studentIndex < shuffledStudents.length; i++) {
+                if (seats[i] === null) {
+                    seats[i] = shuffledStudents[studentIndex];
+                    studentIndex++;
+                }
+            }
+            
+            return {
+                seats: seats,
+                rows: rows,
+                cols: cols,
+                totalStudents: allStudents.length,
+                fixedCount: (fixedSeats && Array.isArray(fixedSeats)) ? fixedSeats.length : 0
+            };
+        }
+        
+        // 자리배치 결과 표시
+        function displaySeatingResult(seating) {
+            const resultContainer = document.getElementById('seatingResult');
+            if (!resultContainer) return;
+            
+            let html = `
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">자리배치 결과</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <div class="text-sm text-blue-600 font-medium">총 학생 수</div>
+                            <div class="text-lg font-bold text-blue-900">${seating.totalStudents}명</div>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-lg">
+                            <div class="text-sm text-green-600 font-medium">교실 크기</div>
+                            <div class="text-lg font-bold text-green-900">${seating.rows} × ${seating.cols}</div>
+                        </div>
+                        <div class="bg-purple-50 p-3 rounded-lg">
+                            <div class="text-sm text-purple-600 font-medium">고정 자리</div>
+                            <div class="text-lg font-bold text-purple-900">${seating.fixedCount}개</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-3">자리 배치도</h4>
+                    <div class="bg-gray-50 p-4 rounded-lg overflow-x-auto">
+                        <div class="inline-block">
+                            <div class="grid gap-1" style="grid-template-columns: repeat(${seating.cols}, 1fr);">
+            `;
+            
+            // 자리 배치도 생성
+            for (let row = 0; row < seating.rows; row++) {
+                for (let col = 0; col < seating.cols; col++) {
+                    const seatIndex = row * seating.cols + col;
+                    const student = seating.seats[seatIndex];
+                    
+                    if (student) {
+                        const isFixed = fixedSeats && Array.isArray(fixedSeats) && fixedSeats.some(fixed => fixed.student === student);
+                        html += `
+                            <div class="w-16 h-16 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center text-xs font-medium ${isFixed ? 'border-yellow-400 bg-yellow-50' : 'border-blue-300 bg-blue-50'}">
+                                <div class="text-center">
+                                    <div class="font-bold">${student}</div>
+                                    ${isFixed ? '<div class="text-yellow-600">고정</div>' : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="w-16 h-16 bg-gray-100 border-2 border-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">
+                                빈자리
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            html += `
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-center">
+                    <button onclick="generateSeating()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-redo mr-2"></i>다시 배정
+                    </button>
+                    <button onclick="printSeating()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-print mr-2"></i>인쇄하기
+                    </button>
+                </div>
+            `;
+            
+            resultContainer.innerHTML = html;
+        }
+        
+        // 자리배치 인쇄
+        function printSeating() {
+            window.print();
+        }
+        
+
+        // 학생 명단 동기화 (iframe 제거로 인해 단순화)
+        function syncStudentsFromIframe() {
+            console.log('=== 학생 명단 동기화 시작 ===');
+            console.log('현재 학생 명단:', { maleStudents, femaleStudents });
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // 학생 명단 모달 열기
+        function openStudentModal() {
+            // 변수 초기화 확인
+            if (!maleStudents || !femaleStudents) {
+                initializeVariables();
+            }
+            
+            // 자리배치 탭에서 최신 학생 명단 동기화
+            syncStudentsFromIframe();
+            loadStudentsForEdit();
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        // 학생 명단 로드
+        function loadStudentsForEdit() {
+            const maleContainer = document.getElementById('maleStudentsList');
+            const femaleContainer = document.getElementById('femaleStudentsList');
+            
+            maleContainer.innerHTML = maleStudents.map((student, index) => `
+                <div class="flex items-center space-x-3">
+                    <input type="text" value="${student}" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <button onclick="removeMaleStudent(${index})" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+            
+            femaleContainer.innerHTML = femaleStudents.map((student, index) => `
+                <div class="flex items-center space-x-3">
+                    <input type="text" value="${student}" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                    <button onclick="removeFemaleStudent(${index})" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // 남학생 추가
+        function addMaleStudent() {
+            maleStudents.push('새 학생');
+            loadStudentsForEdit();
+        }
+
+        // 여학생 추가
+        function addFemaleStudent() {
+            femaleStudents.push('새 학생');
+            loadStudentsForEdit();
+        }
+
+        // 남학생 삭제
+        function removeMaleStudent(index) {
+            maleStudents.splice(index, 1);
+            loadStudentsForEdit();
+        }
+
+        // 여학생 삭제
+        function removeFemaleStudent(index) {
+            femaleStudents.splice(index, 1);
+            loadStudentsForEdit();
+        }
+
+        // 학생 명단 저장
+        function saveStudents() {
+            const maleInputs = document.querySelectorAll('#maleStudentsList input');
+            const femaleInputs = document.querySelectorAll('#femaleStudentsList input');
+            
+            maleStudents = Array.from(maleInputs).map(input => input.value.trim()).filter(name => name);
+            femaleStudents = Array.from(femaleInputs).map(input => input.value.trim()).filter(name => name);
+            
+            localStorage.setItem('maleStudents', JSON.stringify(maleStudents));
+            localStorage.setItem('femaleStudents', JSON.stringify(femaleStudents));
+            
+            // 자리배치 탭의 iframe에 학생 명단 동기화
+            syncStudentsToIframe();
+            
+            closeStudentModal();
+            showNotification('학생 명단이 저장되었습니다.', 'success');
+        }
+
+        // 자리배치 탭에 학생 명단 동기화
+        function syncStudentsToIframe() {
+            console.log('=== 학생 명단 동기화 ===');
+            console.log('현재 학생 명단:', { maleStudents, femaleStudents });
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // iframe 제거로 인해 메시지 리스너 불필요
+
+        // 디버깅용 함수 - 현재 상태 확인 (iframe 제거로 인해 단순화)
+        function debugSyncStatus() {
+            console.log('=== 현재 상태 디버깅 ===');
+            console.log('학생 명단:', { maleStudents, femaleStudents });
+            console.log('교실 설정:', classroomConfig);
+            console.log('고정 자리:', fixedSeats);
+            console.log('특수조건:', { studentProperties, separationPairs, pairingGroups });
+        }
+
+        // 전역 함수로 등록 (콘솔에서 호출 가능)
+        window.debugSyncStatus = debugSyncStatus;
+
+        // 데이터 일관성 확인 함수
+        function checkDataConsistency() {
+            console.log('=== 데이터 일관성 확인 ===');
+            
+            // 메인 페이지 데이터
+            console.log('메인 페이지 학생 명단:', { maleStudents, femaleStudents });
+            
+            // localStorage 데이터
+            const storedMaleStudents = JSON.parse(localStorage.getItem('maleStudents'));
+            const storedFemaleStudents = JSON.parse(localStorage.getItem('femaleStudents'));
+            console.log('localStorage 학생 명단:', { storedMaleStudents, storedFemaleStudents });
+            
+            // 자리배치 탭 데이터
+            const seatingIframe = document.querySelector('iframe[src="index.html"]');
+            if (seatingIframe && seatingIframe.contentWindow) {
+                try {
+                    const iframeMaleStudents = seatingIframe.contentWindow.maleStudents;
+                    const iframeFemaleStudents = seatingIframe.contentWindow.femaleStudents;
+                    console.log('자리배치 탭 학생 명단:', { iframeMaleStudents, iframeFemaleStudents });
+                    
+                    // 일관성 확인
+                    const mainData = JSON.stringify({ maleStudents, femaleStudents });
+                    const storedData = JSON.stringify({ storedMaleStudents, storedFemaleStudents });
+                    const iframeData = JSON.stringify({ iframeMaleStudents, iframeFemaleStudents });
+                    
+                    console.log('메인 페이지 === localStorage:', mainData === storedData);
+                    console.log('메인 페이지 === 자리배치 탭:', mainData === iframeData);
+                    console.log('localStorage === 자리배치 탭:', storedData === iframeData);
+                    
+                } catch (e) {
+                    console.error('자리배치 탭 데이터 접근 실패:', e);
+                }
+            } else {
+                console.log('자리배치 탭에 접근할 수 없음');
+            }
+        }
+
+        // 전역 함수로 등록
+        window.checkDataConsistency = checkDataConsistency;
+
+        // 시스템 설정 탭 디버깅 함수
+        function debugSettingsTab() {
+            console.log('=== 시스템 설정 탭 디버깅 ===');
+            
+            // 관리자 모드 상태 확인
+            console.log('관리자 모드:', isAdminMode);
+            
+            // 설정 탭 요소들 확인
+            const adminSettings = document.getElementById('adminSettings');
+            const studentSettings = document.getElementById('studentSettings');
+            
+            console.log('adminSettings 요소:', adminSettings);
+            console.log('adminSettings display:', adminSettings?.style.display);
+            console.log('studentSettings 요소:', studentSettings);
+            console.log('studentSettings display:', studentSettings?.style.display);
+            
+            // 관리자 기능 버튼들 확인
+            const adminButtons = document.querySelectorAll('#adminSettings button');
+            console.log('관리자 기능 버튼 개수:', adminButtons.length);
+            adminButtons.forEach((btn, index) => {
+                console.log(`버튼 ${index + 1}:`, btn.textContent.trim(), btn.onclick);
+            });
+            
+            // 모달들 확인
+            const modals = ['studentModal', 'classroomModal', 'fixedSeatsModal', 'specialConditionsModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                console.log(`${modalId} 모달:`, modal ? '존재' : '없음');
+            });
+        }
+
+        // 전역 함수로 등록
+        window.debugSettingsTab = debugSettingsTab;
+
+        // 페이지 로드 시 데이터 초기화 (iframe 제거로 인해 단순화)
+        function initializeDataSync() {
+            console.log('=== 데이터 동기화 초기화 ===');
+            console.log('변수들이 이미 초기화됨:', {
+                maleStudents: maleStudents?.length,
+                femaleStudents: femaleStudents?.length,
+                classroomConfig,
+                fixedSeats: fixedSeats?.length
+            });
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeVariables();
+            initializeDataSync();
+        });
+
+        // 교실 설정 관련 변수는 전역에서 초기화됨
+
+        // 교실 설정 모달 열기
+        function openClassroomModal() {
+            // 자리배치 탭에서 최신 교실 설정 동기화
+            syncClassroomFromIframe();
+            
+            document.getElementById('classroomRows').value = classroomConfig.rows;
+            document.getElementById('classroomCols').value = classroomConfig.cols;
+            updateClassroomPreview();
+            
+            // 입력 필드에 이벤트 리스너 추가
+            document.getElementById('classroomRows').addEventListener('input', updateClassroomPreview);
+            document.getElementById('classroomCols').addEventListener('input', updateClassroomPreview);
+            
+            document.getElementById('classroomModal').classList.remove('hidden');
+        }
+
+        // 교실 설정 동기화 (iframe 제거로 인해 단순화)
+        function syncClassroomFromIframe() {
+            console.log('현재 교실 설정:', classroomConfig);
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // 교실 미리보기 업데이트
+        function updateClassroomPreview() {
+            const rows = parseInt(document.getElementById('classroomRows').value) || 4;
+            const cols = parseInt(document.getElementById('classroomCols').value) || 6;
+            
+            const preview = document.getElementById('classroomPreview');
+            preview.innerHTML = `
+                <div class="text-center mb-4">
+                    <h5 class="font-semibold text-gray-700">교실 배치도 (${rows}행 × ${cols}열)</h5>
+                </div>
+                <div class="grid gap-1 justify-center" style="grid-template-columns: repeat(${cols}, 1fr);">
+                    ${Array.from({length: rows * cols}, (_, i) => `
+                        <div class="w-8 h-8 bg-blue-200 border border-blue-300 rounded flex items-center justify-center text-xs font-semibold">
+                            ${i + 1}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 교실 설정 저장
+        function saveClassroom() {
+            const rows = parseInt(document.getElementById('classroomRows').value);
+            const cols = parseInt(document.getElementById('classroomCols').value);
+            
+            if (rows < 1 || rows > 10 || cols < 1 || cols > 10) {
+                showNotification('책상 수는 1개 이상 10개 이하여야 합니다.', 'error');
+                return;
+            }
+            
+            classroomConfig = { rows, cols };
+            localStorage.setItem('classroomConfig', JSON.stringify(classroomConfig));
+            
+            // 자리배치 탭에 교실 설정 동기화
+            syncClassroomToIframe();
+            
+            closeClassroomModal();
+            showNotification('교실 설정이 저장되었습니다.', 'success');
+        }
+
+        // 교실 설정 동기화 (iframe 제거로 인해 단순화)
+        function syncClassroomToIframe() {
+            console.log('=== 교실 설정 동기화 ===');
+            console.log('현재 교실 설정:', classroomConfig);
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // 고정 자리 관련 변수는 전역에서 초기화됨
+
+        // 고정 자리 모달 열기
+        function openFixedSeatsModal() {
+            // 자리배치 탭에서 최신 고정 자리 동기화
+            syncFixedSeatsFromIframe();
+            loadFixedSeatsForEdit();
+            document.getElementById('fixedSeatsModal').classList.remove('hidden');
+        }
+
+        // 고정 자리 동기화 (iframe 제거로 인해 단순화)
+        function syncFixedSeatsFromIframe() {
+            console.log('현재 고정 자리:', fixedSeats);
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // 고정 자리 로드
+        function loadFixedSeatsForEdit() {
+            const container = document.getElementById('fixedSeatsList');
+            const allStudents = [...maleStudents, ...femaleStudents];
+            
+            container.innerHTML = Object.keys(fixedSeats).map(student => `
+                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <span class="font-medium">${student}</span>
+                    <select class="px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">자리 선택</option>
+                        ${Array.from({length: classroomConfig.rows * classroomConfig.cols}, (_, i) => `
+                            <option value="${i + 1}" ${fixedSeats[student] === i + 1 ? 'selected' : ''}>${i + 1}번 자리</option>
+                        `).join('')}
+                    </select>
+                    <button onclick="removeFixedSeat('${student}')" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+            
+            updateFixedSeatsPreview();
+        }
+
+        // 고정 자리 추가
+        function addFixedSeat() {
+            const allStudents = [...maleStudents, ...femaleStudents];
+            const availableStudents = allStudents.filter(student => !fixedSeats[student]);
+            
+            if (availableStudents.length === 0) {
+                showNotification('모든 학생이 이미 고정 자리가 설정되어 있습니다.', 'error');
+                return;
+            }
+            
+            const student = availableStudents[0];
+            fixedSeats[student] = 1;
+            loadFixedSeatsForEdit();
+        }
+
+        // 고정 자리 삭제
+        function removeFixedSeat(student) {
+            delete fixedSeats[student];
+            loadFixedSeatsForEdit();
+        }
+
+        // 고정 자리 미리보기 업데이트
+        function updateFixedSeatsPreview() {
+            const preview = document.getElementById('fixedSeatsPreview');
+            preview.innerHTML = `
+                <div class="text-center mb-4">
+                    <h5 class="font-semibold text-gray-700">고정 자리 배치도</h5>
+                </div>
+                <div class="grid gap-1 justify-center" style="grid-template-columns: repeat(${classroomConfig.cols}, 1fr);">
+                    ${Array.from({length: classroomConfig.rows * classroomConfig.cols}, (_, i) => {
+                        const seatNumber = i + 1;
+                        const student = Object.keys(fixedSeats).find(s => fixedSeats[s] === seatNumber);
+                        return `
+                            <div class="w-8 h-8 ${student ? 'bg-purple-200 border-purple-400' : 'bg-gray-200 border-gray-300'} border rounded flex items-center justify-center text-xs font-semibold">
+                                ${student ? student.charAt(0) : seatNumber}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // 고정 자리 저장
+        function saveFixedSeats() {
+            const inputs = document.querySelectorAll('#fixedSeatsList select');
+            const newFixedSeats = {};
+            
+            inputs.forEach(select => {
+                const student = select.closest('.flex').querySelector('span').textContent;
+                const seatNumber = parseInt(select.value);
+                if (seatNumber) {
+                    newFixedSeats[student] = seatNumber;
+                }
+            });
+            
+            fixedSeats = newFixedSeats;
+            localStorage.setItem('fixedSeats', JSON.stringify(fixedSeats));
+            
+            // 자리배치 탭에 고정 자리 동기화
+            syncFixedSeatsToIframe();
+            
+            closeFixedSeatsModal();
+            showNotification('고정 자리가 저장되었습니다.', 'success');
+        }
+
+        // 고정 자리 동기화 (iframe 제거로 인해 단순화)
+        function syncFixedSeatsToIframe() {
+            console.log('=== 고정 자리 동기화 ===');
+            console.log('현재 고정 자리:', fixedSeats);
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // 특수조건 관련 변수는 전역에서 초기화됨
+
+        // 특수조건 모달 열기
+        function openSpecialConditionsModal() {
+            // 자리배치 탭에서 최신 특수조건 동기화
+            syncSpecialConditionsFromIframe();
+            
+            // localStorage에서 최신 데이터 로드
+            loadSpecialConditionsFromStorage();
+            
+            loadSpecialConditionsForEdit();
+            document.getElementById('specialConditionsModal').classList.remove('hidden');
+        }
+
+        // localStorage에서 특수조건 데이터 로드
+        function loadSpecialConditionsFromStorage() {
+            console.log('=== localStorage에서 특수조건 데이터 로드 ===');
+            
+            const storedStudentProperties = JSON.parse(localStorage.getItem('studentProperties')) || {};
+            const storedSeparationPairs = JSON.parse(localStorage.getItem('separationPairs')) || [];
+            const storedPairingGroups = JSON.parse(localStorage.getItem('pairingGroups')) || [];
+            
+            console.log('로드된 데이터:', {
+                studentProperties: storedStudentProperties,
+                separationPairs: storedSeparationPairs,
+                pairingGroups: storedPairingGroups
+            });
+            
+            studentProperties = storedStudentProperties;
+            separationPairs = storedSeparationPairs;
+            pairingGroups = storedPairingGroups;
+        }
+
+        // 특수조건 동기화 (iframe 제거로 인해 단순화)
+        function syncSpecialConditionsFromIframe() {
+            console.log('현재 특수조건:', { studentProperties, separationPairs, pairingGroups });
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // 특수조건 로드
+        function loadSpecialConditionsForEdit() {
+            console.log('=== 특수조건 로드 시작 ===');
+            console.log('현재 데이터:', { studentProperties, separationPairs, pairingGroups });
+            
+            loadStudentProperties();
+            loadSeparationPairs();
+            loadPairingGroups();
+        }
+
+        // 학생별 특성 로드
+        function loadStudentProperties() {
+            console.log('=== 학생별 특성 로드 ===');
+            const container = document.getElementById('studentProperties');
+            const allStudents = [...maleStudents, ...femaleStudents];
+            
+            console.log('전체 학생:', allStudents);
+            console.log('학생별 특성 데이터:', studentProperties);
+            
+            container.innerHTML = allStudents.map(student => {
+                const studentData = studentProperties[student] || {};
+                console.log(`${student}의 특성:`, studentData);
+                
+                return `
+                    <div class="p-3 border border-gray-200 rounded-lg">
+                        <div class="font-medium text-gray-900 mb-2">${student}</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs text-gray-600">시력</label>
+                                <input type="number" value="${studentData.vision || ''}" 
+                                       data-student="${student}" data-property="vision"
+                                       class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-600">키</label>
+                                <input type="number" value="${studentData.height || ''}" 
+                                       data-student="${student}" data-property="height"
+                                       class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-600">성적</label>
+                                <input type="number" value="${studentData.grade || ''}" 
+                                       data-student="${student}" data-property="grade"
+                                       class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-600">순위</label>
+                                <input type="number" value="${studentData.rank || ''}" 
+                                       data-student="${student}" data-property="rank"
+                                       class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 분리 조건 로드
+        function loadSeparationPairs() {
+            console.log('=== 분리 조건 로드 ===');
+            console.log('분리 조건 데이터:', separationPairs);
+            
+            const container = document.getElementById('separationPairs');
+            const allStudents = [...maleStudents, ...femaleStudents];
+            
+            container.innerHTML = separationPairs.map((pair, index) => `
+                <div class="flex items-center space-x-2">
+                    <select class="px-2 py-1 border border-gray-300 rounded text-sm">
+                        <option value="">학생 선택</option>
+                        ${allStudents.map(student => 
+                            `<option value="${student}" ${pair[0] === student ? 'selected' : ''}>${student}</option>`
+                        ).join('')}
+                    </select>
+                    <span class="text-gray-500">와</span>
+                    <select class="px-2 py-1 border border-gray-300 rounded text-sm">
+                        <option value="">학생 선택</option>
+                        ${allStudents.map(student => 
+                            `<option value="${student}" ${pair[1] === student ? 'selected' : ''}>${student}</option>`
+                        ).join('')}
+                    </select>
+                    <button onclick="removeSeparationPair(${index})" class="px-2 py-1 bg-red-600 text-white rounded text-sm">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // 짝 조건 로드
+        function loadPairingGroups() {
+            console.log('=== 짝 조건 로드 ===');
+            console.log('짝 조건 데이터:', pairingGroups);
+            
+            const container = document.getElementById('pairingGroups');
+            const allStudents = [...maleStudents, ...femaleStudents];
+            
+            container.innerHTML = pairingGroups.map((group, index) => `
+                <div class="p-2 border border-gray-200 rounded">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-sm font-medium">그룹 ${index + 1}</span>
+                        <button onclick="removePairingGroup(${index})" class="px-2 py-1 bg-red-600 text-white rounded text-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-1">
+                        ${group.map((student, studentIndex) => `
+                            <div class="flex items-center space-x-2">
+                                <select class="px-2 py-1 border border-gray-300 rounded text-sm">
+                                    <option value="">학생 선택</option>
+                                    ${allStudents.map(s => 
+                                        `<option value="${s}" ${student === s ? 'selected' : ''}>${s}</option>`
+                                    ).join('')}
+                                </select>
+                                <button onclick="removeGroupStudent(${index}, ${studentIndex})" class="px-2 py-1 bg-red-500 text-white rounded text-sm">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                        <button onclick="addGroupStudent(${index})" class="px-2 py-1 bg-green-600 text-white rounded text-sm">
+                            <i class="fas fa-plus"></i> 학생 추가
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 분리 조건 추가
+        function addSeparationPair() {
+            separationPairs.push(['', '']);
+            loadSeparationPairs();
+        }
+
+        // 분리 조건 삭제
+        function removeSeparationPair(index) {
+            separationPairs.splice(index, 1);
+            loadSeparationPairs();
+        }
+
+        // 짝 조건 추가
+        function addPairingGroup() {
+            pairingGroups.push(['']);
+            loadPairingGroups();
+        }
+
+        // 짝 조건 삭제
+        function removePairingGroup(index) {
+            pairingGroups.splice(index, 1);
+            loadPairingGroups();
+        }
+
+        // 그룹 학생 추가
+        function addGroupStudent(groupIndex) {
+            pairingGroups[groupIndex].push('');
+            loadPairingGroups();
+        }
+
+        // 그룹 학생 삭제
+        function removeGroupStudent(groupIndex, studentIndex) {
+            pairingGroups[groupIndex].splice(studentIndex, 1);
+            loadPairingGroups();
+        }
+
+        // 특수조건 저장
+        function saveSpecialConditions() {
+            console.log('=== 특수조건 저장 시작 ===');
+            
+            // 학생별 특성 저장
+            const propertyInputs = document.querySelectorAll('input[data-property]');
+            const newStudentProperties = {};
+            
+            console.log('찾은 propertyInputs:', propertyInputs.length);
+            
+            propertyInputs.forEach(input => {
+                const student = input.dataset.student;
+                const property = input.dataset.property;
+                const value = parseFloat(input.value);
+                
+                console.log(`학생: ${student}, 속성: ${property}, 값: ${value}`);
+                
+                if (!newStudentProperties[student]) {
+                    newStudentProperties[student] = {};
+                }
+                
+                if (!isNaN(value)) {
+                    newStudentProperties[student][property] = value;
+                }
+            });
+            
+            // 분리 조건 저장
+            const newSeparationPairs = [];
+            const separationSelects = document.querySelectorAll('#separationPairs select');
+            for (let i = 0; i < separationSelects.length; i += 2) {
+                const student1 = separationSelects[i]?.value;
+                const student2 = separationSelects[i + 1]?.value;
+                if (student1 && student2 && student1 !== student2) {
+                    newSeparationPairs.push([student1, student2]);
+                }
+            }
+            
+            // 짝 조건 저장
+            const newPairingGroups = [];
+            const groupElements = document.querySelectorAll('#pairingGroups > div');
+            groupElements.forEach(groupElement => {
+                const groupSelects = groupElement.querySelectorAll('select');
+                const group = Array.from(groupSelects).map(select => select.value).filter(name => name);
+                if (group.length > 1) {
+                    newPairingGroups.push(group);
+                }
+            });
+            
+            console.log('저장할 데이터:', {
+                studentProperties: newStudentProperties,
+                separationPairs: newSeparationPairs,
+                pairingGroups: newPairingGroups
+            });
+            
+            // 데이터 업데이트
+            studentProperties = newStudentProperties;
+            separationPairs = newSeparationPairs;
+            pairingGroups = newPairingGroups;
+            
+            // localStorage에 저장
+            localStorage.setItem('studentProperties', JSON.stringify(studentProperties));
+            localStorage.setItem('separationPairs', JSON.stringify(separationPairs));
+            localStorage.setItem('pairingGroups', JSON.stringify(pairingGroups));
+            
+            // 자리배치 탭에 특수조건 동기화
+            syncSpecialConditionsToIframe();
+            
+            closeSpecialConditionsModal();
+            showNotification('특수조건이 저장되었습니다.', 'success');
+        }
+
+        // 특수조건 동기화 (iframe 제거로 인해 단순화)
+        function syncSpecialConditionsToIframe() {
+            console.log('=== 특수조건 동기화 ===');
+            console.log('현재 특수조건:', { studentProperties, separationPairs, pairingGroups });
+            // iframe이 제거되어 직접 데이터 사용
+        }
+
+        // 비밀번호 변경 모달 닫기
+        function hidePasswordChangeModal() {
+            document.getElementById('passwordChangeModal').classList.add('hidden');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        // 비밀번호 변경
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
+            
+            if (currentPassword !== storedPassword) {
+                showNotification('현재 비밀번호가 올바르지 않습니다.', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 4) {
+                showNotification('새 비밀번호는 4자 이상이어야 합니다.', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showNotification('새 비밀번호가 일치하지 않습니다.', 'error');
+                return;
+            }
+            
+            localStorage.setItem('adminPassword', newPassword);
+            hidePasswordChangeModal();
+            showNotification('비밀번호가 변경되었습니다.', 'success');
+        }
+
+        // 일기 작성 모달 열기
+        function openDiaryModal() {
+            document.getElementById('diaryModal').classList.remove('hidden');
+            document.getElementById('diaryAuthor').value = '';
+            document.getElementById('diaryDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('diaryTitle').value = '';
+            document.getElementById('diaryContent').value = '';
+            document.querySelector('input[name="diaryPrivacy"][value="public"]').checked = true;
+            selectedMood = '';
+            updateMoodButtons();
+        }
+
+        // 일기 작성 모달 닫기
+        function closeDiaryModal() {
+            document.getElementById('diaryModal').classList.add('hidden');
+        }
+
+        // 기분 설정
+        function setMood(mood) {
+            selectedMood = mood;
+            updateMoodButtons();
+        }
+
+        // 기분 버튼 업데이트
+        function updateMoodButtons() {
+            const moodButtons = document.querySelectorAll('.mood-btn');
+            moodButtons.forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-100');
+                if (btn.onclick.toString().includes(selectedMood)) {
+                    btn.classList.add('border-blue-500', 'bg-blue-100');
+                }
+            });
+        }
+
+        // 일기 저장
+        function saveDiary() {
+            const author = document.getElementById('diaryAuthor').value;
+            const date = document.getElementById('diaryDate').value;
+            const title = document.getElementById('diaryTitle').value;
+            const content = document.getElementById('diaryContent').value;
+            const privacy = document.querySelector('input[name="diaryPrivacy"]:checked').value;
+
+            console.log('=== 일기 저장 시작 ===');
+            console.log('입력된 날짜:', date);
+            console.log('오늘 날짜:', new Date().toISOString().split('T')[0]);
+            console.log('일기 저장 시 선택된 감정:', selectedMood);
+
+            if (!author || !date || !title || !content) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+
+            if (!selectedMood) {
+                alert('기분을 선택해주세요.');
+                return;
+            }
+
+            const diary = {
+                id: Date.now(),
+                author: author,
+                date: date,
+                title: title,
+                mood: selectedMood,
+                content: content,
+                privacy: privacy,
+                createdAt: new Date().toISOString()
+            };
+
+            console.log('저장할 일기:', diary);
+
+            diaries.unshift(diary);
+            localStorage.setItem('diaries', JSON.stringify(diaries));
+            
+            console.log('일기 저장 완료, 최근 일기 업데이트 시작');
+            
+            closeDiaryModal();
+            updateRecentDiaries();
+            updateCalendar(); // 달력 업데이트
+            showNotification('일기가 저장되었습니다.', 'success');
+        }
+
+        // 달력 렌더링
+        function renderCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            const currentMonthElement = document.getElementById('currentMonth');
+            
+            // 현재 월 표시
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            currentMonthElement.textContent = `${currentYear}년 ${monthNames[currentMonth]}`;
+            
+            // 달력 그리드 초기화
+            calendarGrid.innerHTML = '';
+            
+            // 해당 월의 첫 번째 날과 마지막 날
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const firstDayOfWeek = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            
+            // 이전 달의 마지막 날들 (빈 칸 채우기)
+            const prevMonth = new Date(currentYear, currentMonth - 1, 0);
+            const daysInPrevMonth = prevMonth.getDate();
+            
+            for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const prevMonthNum = currentMonth === 0 ? 12 : currentMonth;
+                const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                const dateStr = `${prevYear}-${String(prevMonthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayElement = createDayElement(day, false, dateStr);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // 현재 달의 날들
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayElement = createDayElement(day, true, dateStr);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // 다음 달의 첫 번째 날들 (빈 칸 채우기)
+            const totalCells = calendarGrid.children.length;
+            const remainingCells = 42 - totalCells; // 6주 * 7일 = 42칸
+            
+            for (let day = 1; day <= remainingCells; day++) {
+                const nextMonth = currentMonth + 1;
+                const nextYear = nextMonth > 11 ? currentYear + 1 : currentYear;
+                const actualNextMonth = nextMonth > 11 ? 0 : nextMonth;
+                const dateStr = `${nextYear}-${String(actualNextMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayElement = createDayElement(day, false, dateStr);
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        // 날짜 요소 생성
+        function createDayElement(day, isCurrentMonth, dateStr) {
+            const dayElement = document.createElement('div');
+            dayElement.className = `relative p-2 h-16 border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors ${
+                isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'
+            }`;
+            
+            // 일기 작성자 수 계산
+            const diaryCount = getDiaryCountForDate(dateStr);
+            
+            dayElement.innerHTML = `
+                <div class="text-sm font-medium ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}">${day}</div>
+                ${diaryCount > 0 ? `
+                    <div class="absolute bottom-1 right-1">
+                        <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-pink-500 rounded-full">
+                            ${diaryCount}
+                        </span>
+                    </div>
+                ` : ''}
+            `;
+            
+            // 클릭 이벤트 (해당 날짜의 일기 보기)
+            dayElement.addEventListener('click', () => {
+                if (diaryCount > 0) {
+                    showDiariesForDate(dateStr);
+                }
+            });
+            
+            return dayElement;
+        }
+
+        // 특정 날짜의 일기 수 계산
+        function getDiaryCountForDate(dateStr) {
+            return diaries.filter(diary => diary.date === dateStr).length;
+        }
+
+        // 특정 날짜의 일기 보기
+        function showDiariesForDate(dateStr) {
+            const allDiariesForDate = diaries.filter(diary => diary.date === dateStr);
+            const visibleDiariesForDate = isAdminMode ? allDiariesForDate : allDiariesForDate.filter(diary => diary.privacy === 'public');
+            
+            if (visibleDiariesForDate.length === 0) {
+                showNotification('해당 날짜에 작성된 일기가 없습니다.', 'info');
+                return;
+            }
+            
+            // 일기 목록 모달에 해당 날짜의 일기들 표시
+            const container = document.getElementById('diaryListContent');
+            container.innerHTML = visibleDiariesForDate.map(diary => `
+                <div class="bg-white border rounded-lg p-4 shadow-sm ${diary.privacy === 'private' ? 'border-red-200' : ''}">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <h4 class="font-semibold text-gray-900">${diary.title}</h4>
+                            ${diary.privacy === 'private' ? '<span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">비공개</span>' : ''}
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">${new Date(diary.date).toLocaleDateString()}</span>
+                            <button onclick="deleteDiary(${diary.id})" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600">작성자: ${diary.author}</span>
+                            <span class="text-sm text-gray-600">기분: ${getMoodText(diary.mood)}</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 text-sm">${diary.content}</p>
+                </div>
+            `).join('');
+            
+            document.getElementById('diaryListModal').classList.remove('hidden');
+        }
+
+        // 이전 달로 이동
+        function previousMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        // 다음 달로 이동
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        // 달력 업데이트
+        function updateCalendar() {
+            renderCalendar();
+        }
+
+        // 최근 일기 업데이트
+        function updateRecentDiaries() {
+            const container = document.getElementById('recentDiaries');
+            
+            console.log('=== 오늘의 일기 업데이트 시작 ===');
+            console.log('전체 일기 수:', diaries.length);
+            console.log('관리자 모드:', isAdminMode);
+            
+            if (diaries.length === 0) {
+                console.log('일기가 없음 - 빈 상태 표시');
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-book-open text-4xl mb-4"></i>
+                        <p>아직 작성된 일기가 없습니다.</p>
+                        <p class="text-sm">첫 번째 일기를 작성해보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 오늘 날짜 가져오기
+            const today = new Date().toISOString().split('T')[0];
+            console.log('오늘 날짜:', today);
+            
+            // 공개 일기만 표시 (관리자 모드가 아닐 때)
+            const visibleDiaries = isAdminMode ? diaries : diaries.filter(diary => diary.privacy === 'public');
+            console.log('보이는 일기 수:', visibleDiaries.length);
+            
+            // 모든 일기의 날짜 확인
+            console.log('모든 일기의 날짜:');
+            visibleDiaries.forEach((diary, index) => {
+                console.log(`  일기 ${index + 1}: ${diary.date} (${diary.author})`);
+            });
+            
+            // 당일에 작성된 일기만 필터링 (더 유연한 날짜 비교)
+            const todayDiaries = visibleDiaries.filter(diary => {
+                const diaryDate = new Date(diary.date);
+                const todayDate = new Date(today);
+                
+                // 날짜만 비교 (시간 무시)
+                const isToday = diaryDate.getFullYear() === todayDate.getFullYear() &&
+                               diaryDate.getMonth() === todayDate.getMonth() &&
+                               diaryDate.getDate() === todayDate.getDate();
+                
+                console.log(`일기 날짜 비교: ${diary.date} vs ${today} = ${isToday}`);
+                return isToday;
+            });
+            console.log('당일 일기 수:', todayDiaries.length);
+            
+            if (todayDiaries.length === 0) {
+                console.log('당일 일기가 없음 - 빈 상태 표시');
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-calendar-day text-4xl mb-4"></i>
+                        <p>오늘 작성된 일기가 없습니다.</p>
+                        <p class="text-sm">오늘의 기분을 기록해보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 최신 순으로 정렬 (최대 5개)
+            const recentDiaries = todayDiaries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+            console.log('표시할 일기 수:', recentDiaries.length);
+            console.log('표시할 일기 목록:', recentDiaries.map(d => ({ author: d.author, date: d.date, mood: d.mood })));
+            
+            container.innerHTML = recentDiaries.map(diary => `
+                <div class="bg-gray-50 rounded-lg p-4 border-l-4 ${diary.privacy === 'private' ? 'border-red-500' : 'border-blue-500'}">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2">
+                            <h4 class="font-semibold text-gray-900">${diary.title}</h4>
+                            ${diary.privacy === 'private' ? '<span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">비공개</span>' : ''}
+                        </div>
+                        <span class="text-sm text-gray-500">${new Date(diary.date).toLocaleDateString()}</span>
+                    </div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600">작성자: ${diary.author}</span>
+                            <span class="text-sm text-gray-600">기분: ${getMoodText(diary.mood)}</span>
+                        </div>
+                        <span class="text-sm text-gray-500">${new Date(diary.createdAt).toLocaleTimeString()}</span>
+                    </div>
+                    <p class="text-gray-700 text-sm line-clamp-2">${diary.content.substring(0, 100)}${diary.content.length > 100 ? '...' : ''}</p>
+                </div>
+            `).join('');
+        }
+
+        // 기분 텍스트 변환
+        function getMoodText(mood) {
+            const moodMap = {
+                'happy': '😊 기쁨',
+                'sad': '😢 슬픔',
+                'angry': '😠 화남',
+                'calm': '😌 평온'
+            };
+            return moodMap[mood] || '😐 보통';
+        }
+
+        // 일기 목록 보기
+        function showDiaryList() {
+            document.getElementById('diaryListModal').classList.remove('hidden');
+            updateDiaryList();
+        }
+
+        // 일기 목록 모달 닫기
+        function closeDiaryListModal() {
+            document.getElementById('diaryListModal').classList.add('hidden');
+        }
+
+        // 일기 목록 업데이트
+        function updateDiaryList() {
+            const container = document.getElementById('diaryListContent');
+            if (diaries.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-book-open text-4xl mb-4"></i>
+                        <p>아직 작성된 일기가 없습니다.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 공개 일기만 표시 (관리자 모드가 아닐 때)
+            const visibleDiaries = isAdminMode ? diaries : diaries.filter(diary => diary.privacy === 'public');
+
+            container.innerHTML = visibleDiaries.map(diary => `
+                <div class="bg-white border rounded-lg p-4 shadow-sm ${diary.privacy === 'private' ? 'border-red-200' : ''}">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <h4 class="font-semibold text-gray-900">${diary.title}</h4>
+                            ${diary.privacy === 'private' ? '<span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">비공개</span>' : ''}
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">${new Date(diary.date).toLocaleDateString()}</span>
+                            <button onclick="deleteDiary(${diary.id})" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600">작성자: ${diary.author}</span>
+                            <span class="text-sm text-gray-600">기분: ${getMoodText(diary.mood)}</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 text-sm">${diary.content}</p>
+                </div>
+            `).join('');
+        }
+
+        // 일기 삭제
+        function deleteDiary(id) {
+            if (confirm('정말로 이 일기를 삭제하시겠습니까?')) {
+                diaries = diaries.filter(diary => diary.id !== id);
+                localStorage.setItem('diaries', JSON.stringify(diaries));
+                updateDiaryList();
+                updateRecentDiaries();
+                updateCalendar(); // 달력 업데이트
+                showNotification('일기가 삭제되었습니다.', 'success');
+            }
+        }
+
+        // 감정 분석 보기
+        function showEmotionAnalysis() {
+            document.getElementById('emotionModal').classList.remove('hidden');
+            updateEmotionAnalysis();
+        }
+
+        // 감정 분석 모달 닫기
+        function closeEmotionModal() {
+            document.getElementById('emotionModal').classList.add('hidden');
+        }
+
+        // 감정 분석 업데이트 (일일 단위)
+        function updateEmotionAnalysis() {
+            const container = document.getElementById('emotionAnalysisContent');
+            
+            console.log('감정분석 시작 - 총 일기 수:', diaries.length);
+            console.log('일기 데이터:', diaries);
+            
+            if (diaries.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-chart-pie text-4xl mb-4"></i>
+                        <p>분석할 일기가 없습니다.</p>
+                        <p class="text-sm">일기를 작성한 후 다시 시도해주세요.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 간단한 테스트부터 시작
+            container.innerHTML = `
+                <div class="text-center text-blue-500 py-8">
+                    <i class="fas fa-chart-pie text-4xl mb-4"></i>
+                    <p>감정분석을 시작합니다...</p>
+                    <p class="text-sm">총 ${diaries.length}개의 일기를 분석합니다.</p>
+                    <p class="text-sm">관리자 모드: ${isAdminMode}</p>
+                </div>
+            `;
+
+            try {
+                // 날짜별로 일기 그룹화 (공개 일기만 또는 관리자 모드일 때 모든 일기)
+                const diariesByDate = {};
+                const visibleDiaries = isAdminMode ? diaries : diaries.filter(diary => diary.privacy === 'public');
+                console.log('보이는 일기 수:', visibleDiaries.length);
+                console.log('관리자 모드:', isAdminMode);
+                
+                visibleDiaries.forEach((diary, index) => {
+                    console.log(`일기 ${index + 1} 처리:`, {
+                        author: diary.author,
+                        date: diary.date,
+                        mood: diary.mood,
+                        title: diary.title
+                    });
+                    
+                    if (!diariesByDate[diary.date]) {
+                        diariesByDate[diary.date] = [];
+                        console.log(`새로운 날짜 그룹 생성: ${diary.date}`);
+                    }
+                    diariesByDate[diary.date].push(diary);
+                    console.log(`${diary.date} 날짜 그룹에 추가됨. 현재 그룹 크기: ${diariesByDate[diary.date].length}`);
+                });
+
+                console.log('날짜별 일기 그룹:', diariesByDate);
+                
+                // 각 날짜별로 그룹 크기 확인
+                Object.keys(diariesByDate).forEach(date => {
+                    console.log(`날짜 ${date}: ${diariesByDate[date].length}개의 일기`);
+                    diariesByDate[date].forEach((diary, index) => {
+                        console.log(`  일기 ${index + 1}: ${diary.author} - ${diary.mood}`);
+                    });
+                });
+
+                // 일일 감정 분석
+                const dailyEmotions = [];
+                Object.keys(diariesByDate).sort().forEach(date => {
+                    console.log(`\n=== 날짜 ${date} 감정 분석 시작 ===`);
+                    const dayDiaries = diariesByDate[date];
+                    console.log(`해당 날짜의 일기 수: ${dayDiaries.length}`);
+                    
+                    const dayEmotion = analyzeDayEmotion(dayDiaries);
+                    console.log(`날짜 ${date}의 감정 분석 결과:`, dayEmotion);
+                    
+                    dailyEmotions.push({
+                        date: date,
+                        emotion: dayEmotion,
+                        count: dayDiaries.length,
+                        diaries: dayDiaries
+                    });
+                    
+                    console.log(`=== 날짜 ${date} 감정 분석 완료 ===\n`);
+                });
+
+                // 전체 통계
+                const totalDays = dailyEmotions.length;
+                console.log(`\n=== 전체 통계 계산 시작 ===`);
+                console.log(`분석된 날짜 수: ${totalDays}`);
+                
+                const emotionStats = {
+                    happy: 0,
+                    sad: 0,
+                    angry: 0,
+                    calm: 0
+                };
+
+                dailyEmotions.forEach((day, index) => {
+                    console.log(`날짜 ${index + 1} (${day.date}): 주요 감정 = ${day.emotion.dominant}`);
+                    emotionStats[day.emotion.dominant] += 1;
+                    console.log(`현재 통계:`, emotionStats);
+                });
+
+                const mostCommonMood = totalDays > 0 ? Object.keys(emotionStats).reduce((a, b) => emotionStats[a] > emotionStats[b] ? a : b) : 'happy';
+
+                console.log('최종 통계 계산 완료:', { totalDays, emotionStats, mostCommonMood });
+                console.log(`=== 전체 통계 계산 완료 ===\n`);
+
+                container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">일일 감정 분석 결과</h4>
+                        <p class="text-gray-600">총 ${totalDays}일간의 감정을 분석했습니다.</p>
+                    </div>
+                    
+                    <!-- 일일 감정 차트 -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="font-semibold text-gray-800 mb-4">일일 감정 변화</h5>
+                        <div class="space-y-2 max-h-64 overflow-y-auto">
+                            ${dailyEmotions.map(day => `
+                                <div class="flex items-center justify-between p-3 bg-white rounded-lg border hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors" onclick="showDateDetail('${day.date}', '${JSON.stringify(day.diaries).replace(/"/g, '&quot;')}')">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-sm font-medium text-gray-600">${new Date(day.date).toLocaleDateString()}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-xs px-2 py-1 rounded-full ${getEmotionColor(day.emotion.dominant)}">
+                                                ${getMoodText(day.emotion.dominant)}
+                                            </span>
+                                            <span class="text-xs text-gray-500">${day.count}명</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        ${day.emotion.breakdown.map(mood => `
+                                            <div class="w-3 h-3 rounded-full ${getEmotionBgColor(mood.mood)}" title="${getMoodText(mood.mood)}: ${mood.count}명"></div>
+                                        `).join('')}
+                                        <i class="fas fa-chevron-right text-gray-400 ml-2"></i>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- 전체 통계 -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-smile text-blue-500 mr-2"></i>
+                                <span class="font-semibold">기쁨</span>
+                            </div>
+                            <div class="text-2xl font-bold text-blue-600">${emotionStats.happy}</div>
+                            <div class="text-sm text-gray-600">${totalDays > 0 ? Math.round(emotionStats.happy / totalDays * 100) : 0}%</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-frown text-gray-500 mr-2"></i>
+                                <span class="font-semibold">슬픔</span>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-600">${emotionStats.sad}</div>
+                            <div class="text-sm text-gray-600">${totalDays > 0 ? Math.round(emotionStats.sad / totalDays * 100) : 0}%</div>
+                        </div>
+                        
+                        <div class="bg-red-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-angry text-red-500 mr-2"></i>
+                                <span class="font-semibold">화남</span>
+                            </div>
+                            <div class="text-2xl font-bold text-red-600">${emotionStats.angry}</div>
+                            <div class="text-sm text-gray-600">${totalDays > 0 ? Math.round(emotionStats.angry / totalDays * 100) : 0}%</div>
+                        </div>
+                        
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-leaf text-green-500 mr-2"></i>
+                                <span class="font-semibold">평온</span>
+                            </div>
+                            <div class="text-2xl font-bold text-green-600">${emotionStats.calm}</div>
+                            <div class="text-sm text-gray-600">${totalDays > 0 ? Math.round(emotionStats.calm / totalDays * 100) : 0}%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lightbulb text-yellow-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    <strong>가장 많이 느낀 감정:</strong> ${getMoodText(mostCommonMood)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+                
+                console.log('HTML 생성 완료');
+                
+            } catch (error) {
+                console.error('감정분석 오류:', error);
+                container.innerHTML = `
+                    <div class="text-center text-red-500 py-8">
+                        <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                        <p>감정분석 중 오류가 발생했습니다.</p>
+                        <p class="text-sm">오류: ${error.message}</p>
+                        <p class="text-sm">개발자 도구의 콘솔을 확인해주세요.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 하루의 감정 분석
+        function analyzeDayEmotion(dayDiaries) {
+            console.log('하루 일기 분석 시작:', dayDiaries);
+            console.log('분석할 일기 수:', dayDiaries.length);
+            
+            const moodCounts = {
+                happy: 0,
+                sad: 0,
+                angry: 0,
+                calm: 0
+            };
+
+            // 각 일기의 감정을 상세히 로그
+            dayDiaries.forEach((diary, index) => {
+                console.log(`일기 ${index + 1}:`, {
+                    author: diary.author,
+                    mood: diary.mood,
+                    date: diary.date,
+                    title: diary.title
+                });
+                
+                if (diary.mood && moodCounts.hasOwnProperty(diary.mood)) {
+                    moodCounts[diary.mood]++;
+                    console.log(`${diary.mood} 감정 카운트 증가: ${moodCounts[diary.mood]}`);
+                } else {
+                    console.log(`유효하지 않은 감정 또는 감정 없음: ${diary.mood}`);
+                }
+            });
+
+            console.log('최종 감정 카운트:', moodCounts);
+
+            // 가장 많은 감정 찾기
+            const totalMoods = Object.values(moodCounts).reduce((sum, count) => sum + count, 0);
+            const dominant = totalMoods > 0 ? 
+                Object.keys(moodCounts).reduce((a, b) => moodCounts[a] > moodCounts[b] ? a : b) : 
+                'happy';
+            
+            console.log('총 감정 수:', totalMoods, '주요 감정:', dominant);
+            
+            // 감정별 분포 (0이 아닌 것만)
+            const breakdown = Object.keys(moodCounts).map(mood => ({
+                mood: mood,
+                count: moodCounts[mood]
+            })).filter(item => item.count > 0);
+
+            const result = {
+                dominant: dominant,
+                breakdown: breakdown,
+                total: dayDiaries.length
+            };
+            
+            console.log('최종 분석 결과:', result);
+            return result;
+        }
+
+        // 감정별 색상 클래스
+        function getEmotionColor(mood) {
+            const colors = {
+                happy: 'bg-yellow-100 text-yellow-800',
+                sad: 'bg-gray-100 text-gray-800',
+                angry: 'bg-red-100 text-red-800',
+                calm: 'bg-green-100 text-green-800'
+            };
+            return colors[mood] || 'bg-gray-100 text-gray-800';
+        }
+
+        // 감정별 배경 색상
+        function getEmotionBgColor(mood) {
+            const colors = {
+                happy: 'bg-yellow-400',
+                sad: 'bg-gray-400',
+                angry: 'bg-red-400',
+                calm: 'bg-green-400'
+            };
+            return colors[mood] || 'bg-gray-400';
+        }
+
+        // 날짜별 상세 일기 보기
+        function showDateDetail(date, diaries) {
+            console.log('날짜별 상세 일기 보기:', date, diaries);
+            
+            const dateDetailTitle = document.getElementById('dateDetailTitle');
+            const dateDetailContent = document.getElementById('dateDetailContent');
+            
+            // 제목 설정
+            dateDetailTitle.textContent = `${new Date(date).toLocaleDateString()} 일기 상세`;
+            
+            // 일기 내용 생성
+            if (diaries && diaries.length > 0) {
+                // 감정 분석
+                const emotionStats = {
+                    happy: 0,
+                    sad: 0,
+                    angry: 0,
+                    calm: 0
+                };
+                
+                diaries.forEach(diary => {
+                    if (diary.mood && emotionStats.hasOwnProperty(diary.mood)) {
+                        emotionStats[diary.mood]++;
+                    }
+                });
+                
+                const totalDiaries = diaries.length;
+                const dominantEmotion = Object.keys(emotionStats).reduce((a, b) => emotionStats[a] > emotionStats[b] ? a : b);
+                
+                dateDetailContent.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- 날짜 요약 -->
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-blue-900 mb-3">${new Date(date).toLocaleDateString()} 감정 현황</h4>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-6">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-yellow-600">${emotionStats.happy}</div>
+                                        <div class="text-sm text-yellow-800">😊 기쁨</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-gray-600">${emotionStats.sad}</div>
+                                        <div class="text-sm text-gray-800">😢 슬픔</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-red-600">${emotionStats.angry}</div>
+                                        <div class="text-sm text-red-800">😠 화남</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-green-600">${emotionStats.calm}</div>
+                                        <div class="text-sm text-green-800">😌 평온</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-blue-700">총 ${totalDiaries}명</div>
+                                    <div class="text-sm text-blue-600">주요: ${getMoodText(dominantEmotion)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 일기 목록 (간소화) -->
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-semibold text-gray-900">작성자별 기분 현황</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                ${diaries.map(diary => `
+                                    <div class="bg-white border rounded-lg p-4 shadow-sm ${diary.privacy === 'private' ? 'border-red-200' : ''}">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-semibold text-gray-900">${diary.author}</span>
+                                                ${diary.privacy === 'private' ? '<span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">비공개</span>' : ''}
+                                            </div>
+                                            <span class="text-sm text-gray-500">${new Date(diary.createdAt).toLocaleTimeString()}</span>
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <span class="text-lg font-medium ${getEmotionColor(diary.mood)} px-3 py-2 rounded-full">
+                                                ${getMoodText(diary.mood)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                dateDetailContent.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-calendar-day text-4xl mb-4"></i>
+                        <p>해당 날짜에 작성된 일기가 없습니다.</p>
+                    </div>
+                `;
+            }
+            
+            // 모달 표시
+            document.getElementById('dateDetailModal').classList.remove('hidden');
+        }
+        
+        // 날짜별 상세 일기 모달 닫기
+        function closeDateDetailModal() {
+            document.getElementById('dateDetailModal').classList.add('hidden');
+        }
+
+        // MBTI 검사 시작
+        function startMBTITest() {
+            if (!mbtiSelectedStudent) {
+                alert('검사할 학생을 선택해주세요!');
+                return;
+            }
+            
+            mbtiCurrentQuestion = 0;
+            mbtiAnswers = [];
+            
+            document.getElementById('mbtiStartScreen').classList.add('hidden');
+            document.getElementById('mbtiTestScreen').classList.remove('hidden');
+            
+            showMBTIQuestion();
+        }
+
+        // MBTI 검사 결과 섹션 업데이트
+        function updateMBTIResultsSection() {
+            const container = document.getElementById('mbtiResultsContainer');
+            const results = Object.keys(mbtiResults);
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-clipboard-list text-4xl text-gray-400 mb-4"></i>
+                        <h4 class="text-lg font-semibold text-gray-700 mb-2">검사 결과가 없습니다</h4>
+                        <p class="text-sm text-gray-500 mb-4">학생들의 MBTI 검사 결과를 확인할 수 있습니다.</p>
+                        <button onclick="showMBTIResultsModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold">
+                            <i class="fas fa-list mr-2"></i>전체 결과 보기
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="text-center mb-6">
+                            <h4 class="text-lg font-semibold text-gray-700 mb-2">검사 결과 현황</h4>
+                            <p class="text-sm text-gray-500">총 ${results.length}명의 학생이 검사를 완료했습니다.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                            ${results.map(student => {
+                                const result = mbtiResults[student];
+                                return `
+                                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors cursor-pointer" onclick="showStudentMBTIResultModal('${student}')">
+                                        <div class="text-center">
+                                            <div class="text-3xl mb-2">${result.emoji}</div>
+                                            <div class="font-semibold text-gray-900 text-sm mb-1">${student}</div>
+                                            <div class="text-xs text-gray-500 mb-2">${result.type}</div>
+                                            <div class="text-xs text-gray-400">${result.testDate}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="text-center mt-6">
+                            <button onclick="showMBTIResultsModal()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold">
+                                <i class="fas fa-list mr-2"></i>전체 결과 보기
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // MBTI 검사 결과 모달 표시 (시스템 설정 탭용)
+        function showMBTIResultsModal() {
+            const results = Object.keys(mbtiResults);
+            
+            if (results.length === 0) {
+                alert('검사 결과가 없습니다.');
+                return;
+            }
+            
+            // 모달 HTML 생성
+            const modalHTML = `
+                <div id="mbtiResultsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-2xl font-bold text-gray-900">MBTI 검사 결과 목록</h2>
+                                <button onclick="closeMBTIResultsModal()" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${results.map(student => {
+                                    const result = mbtiResults[student];
+                                    return `
+                                        <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors cursor-pointer" onclick="showStudentMBTIResultModal('${student}')">
+                                            <div class="text-center">
+                                                <div class="text-4xl mb-3">${result.emoji}</div>
+                                                <h3 class="text-lg font-semibold text-gray-900 mb-2">${student}</h3>
+                                                <p class="text-sm text-gray-600 mb-2">${result.type}</p>
+                                                <p class="text-xs text-gray-500">${result.testDate}</p>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 기존 모달이 있다면 제거
+            const existingModal = document.getElementById('mbtiResultsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 모달 추가
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // 모달 외부 클릭 시 닫기
+            const modal = document.getElementById('mbtiResultsModal');
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeMBTIResultsModal();
+                }
+            });
+        }
+
+        // MBTI 검사 결과 모달 닫기
+        function closeMBTIResultsModal() {
+            const modal = document.getElementById('mbtiResultsModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 개별 학생 MBTI 결과 모달 표시
+        function showStudentMBTIResultModal(studentName) {
+            console.log('MBTI 결과 모달 표시:', studentName);
+            console.log('mbtiResults:', mbtiResults);
+            
+            const result = mbtiResults[studentName];
+            
+            if (!result) {
+                alert('해당 학생의 검사 결과를 찾을 수 없습니다.');
+                return;
+            }
+            
+            console.log('검사 결과:', result);
+            
+            // 기존 모달 제거
+            const existingModal = document.getElementById('studentMBTIResultModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 모달 HTML 생성 (문자열 연결 방식 사용)
+            const modalHTML = 
+                '<div id="studentMBTIResultModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">' +
+                    '<div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">' +
+                        '<div class="p-6 border-b border-gray-200">' +
+                            '<div class="flex justify-between items-center">' +
+                                '<h2 class="text-2xl font-bold text-gray-900">' + studentName + '의 MBTI 결과</h2>' +
+                                '<button onclick="closeStudentMBTIResultModal()" class="text-gray-400 hover:text-gray-600">' +
+                                    '<i class="fas fa-times text-xl"></i>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="p-6">' +
+                            '<div class="text-center mb-8">' +
+                                '<div class="text-6xl mb-4">' + result.emoji + '</div>' +
+                                '<h3 class="text-3xl font-bold text-gray-900 mb-2">' + result.type + '</h3>' +
+                                '<p class="text-lg text-gray-600 mb-4">' + result.description + '</p>' +
+                                '<div class="bg-blue-50 rounded-lg p-4 inline-block">' +
+                                    '<p class="text-blue-800 font-medium">검사자: ' + studentName + '</p>' +
+                                    '<p class="text-blue-600 text-sm">검사일: ' + new Date(result.testDate).toLocaleDateString() + '</p>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">' +
+                                '<div class="bg-green-50 rounded-lg p-6">' +
+                                    '<h4 class="text-xl font-semibold text-green-900 mb-4">' +
+                                        '<i class="fas fa-star mr-2"></i>성격의 강점' +
+                                    '</h4>' +
+                                    '<ul class="space-y-2 text-green-800">' +
+                                        result.strengths.map(strength => '<li>• ' + strength + '</li>').join('') +
+                                    '</ul>' +
+                                '</div>' +
+                                '<div class="bg-blue-50 rounded-lg p-6">' +
+                                    '<h4 class="text-xl font-semibold text-blue-900 mb-4">' +
+                                        '<i class="fas fa-graduation-cap mr-2"></i>학습 방법' +
+                                    '</h4>' +
+                                    '<ul class="space-y-2 text-blue-800">' +
+                                        result.learningMethods.map(method => '<li>• ' + method + '</li>').join('') +
+                                    '</ul>' +
+                                '</div>' +
+                                '<div class="bg-purple-50 rounded-lg p-6">' +
+                                    '<h4 class="text-xl font-semibold text-purple-900 mb-4">' +
+                                        '<i class="fas fa-briefcase mr-2"></i>추천 직업' +
+                                    '</h4>' +
+                                    '<ul class="space-y-2 text-purple-800">' +
+                                        result.careers.map(career => '<li>• ' + career + '</li>').join('') +
+                                    '</ul>' +
+                                '</div>' +
+                                '<div class="bg-pink-50 rounded-lg p-6">' +
+                                    '<h4 class="text-xl font-semibold text-pink-900 mb-4">' +
+                                        '<i class="fas fa-heart mr-2"></i>친구 관계' +
+                                    '</h4>' +
+                                    '<p class="text-pink-800">' + result.friendship + '</p>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="text-center">' +
+                                '<button onclick="closeStudentMBTIResultModal()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-semibold">' +
+                                    '닫기' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            
+            // 모달 추가
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // 모달 외부 클릭 시 닫기
+            const modal = document.getElementById('studentMBTIResultModal');
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeStudentMBTIResultModal();
+                }
+            });
+        }
+
+        // 개별 학생 MBTI 결과 모달 닫기
+        function closeStudentMBTIResultModal() {
+            const modal = document.getElementById('studentMBTIResultModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // MBTI 학생 선택 화면 로드
+        function loadMBTIStudentSelection() {
+            const container = document.getElementById('mbtiStudentSelection');
+            
+            console.log('=== MBTI 학생 선택 로딩 시작 ===');
+            console.log('현재 남학생 목록:', maleStudents);
+            console.log('현재 여학생 목록:', femaleStudents);
+            
+            // 자리배치 탭에서 최신 학생 명단 동기화
+            syncStudentsFromIframe();
+            
+            // 동기화 완료를 기다린 후 학생 목록 표시
+            setTimeout(() => {
+                displayMBTIStudents();
+            }, 100);
+        }
+        
+        function displayMBTIStudents() {
+            const container = document.getElementById('mbtiStudentSelection');
+            
+            // 로컬 변수에서 학생 목록 가져오기
+            const allStudents = [...maleStudents, ...femaleStudents];
+            
+            console.log('전체 학생 목록:', allStudents);
+            
+            if (allStudents.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <i class="fas fa-users text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-600 mb-2">등록된 학생이 없습니다.</p>
+                        <p class="text-sm text-gray-500">설정 탭에서 학생 명단을 먼저 등록해주세요.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = allStudents.map(student => `
+                <button onclick="selectMBTIStudent('${student}')" 
+                        class="mbti-student-btn p-3 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-center">
+                    <div class="text-lg font-medium text-gray-900">${student}</div>
+                    <div class="text-sm text-gray-500 mt-1">
+                        ${mbtiResults[student] ? `이전 결과: ${mbtiResults[student].type}` : '새로운 검사'}
+                    </div>
+                </button>
+            `).join('');
+            
+            console.log('MBTI 학생 선택 화면 로딩 완료');
+        }
+
+        // MBTI 학생 선택
+        function selectMBTIStudent(studentName) {
+            mbtiSelectedStudent = studentName;
+            
+            // 모든 학생 버튼 스타일 초기화
+            document.querySelectorAll('.mbti-student-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-100');
+                btn.classList.add('border-gray-200');
+            });
+            
+            // 선택된 학생 버튼 스타일 적용
+            const selectedBtn = document.querySelector(`button[onclick="selectMBTIStudent('${studentName}')"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-gray-200');
+                selectedBtn.classList.add('border-purple-500', 'bg-purple-100');
+            }
+            
+            // 검사 시작 버튼 활성화
+            const startBtn = document.getElementById('mbtiStartBtn');
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        // MBTI 질문 표시
+        function showMBTIQuestion() {
+            const question = mbtiQuestions[mbtiCurrentQuestion];
+            const progress = ((mbtiCurrentQuestion + 1) / mbtiQuestions.length) * 100;
+            
+            // 진행률 업데이트
+            document.getElementById('mbtiProgress').textContent = `${mbtiCurrentQuestion + 1}/${mbtiQuestions.length}`;
+            document.getElementById('mbtiProgressBar').style.width = `${progress}%`;
+            
+            // 질문 표시
+            document.getElementById('mbtiQuestionContainer').innerHTML = `
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">${question.question}</h3>
+                </div>
+            `;
+            
+            // 답변 선택지 표시
+            document.getElementById('mbtiAnswerContainer').innerHTML = `
+                <div class="space-y-3">
+                    ${question.answers.map((answer, index) => `
+                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 mbti-answer-option">
+                            <input type="radio" name="mbtiAnswer" value="${answer.type}" class="sr-only">
+                            <div class="flex-1">
+                                <div class="text-lg font-medium text-gray-900">${answer.text}</div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center transition-all duration-200 mbti-radio-circle">
+                                    <div class="w-3 h-3 bg-purple-600 rounded-full hidden mbti-radio-dot"></div>
+                                    <i class="fas fa-check text-white text-xs hidden mbti-check-icon"></i>
+                                </div>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            
+            // 라디오 버튼 이벤트 리스너 추가
+            document.querySelectorAll('input[name="mbtiAnswer"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    console.log('MBTI 답변 선택:', this.value);
+                    
+                    // 모든 답변 옵션의 스타일 초기화
+                    document.querySelectorAll('.mbti-answer-option').forEach(option => {
+                        option.classList.remove('border-purple-500', 'bg-purple-100', 'ring-2', 'ring-purple-200', 'selected');
+                        option.classList.add('border-gray-200');
+                        
+                        const circle = option.querySelector('.mbti-radio-circle');
+                        const dot = option.querySelector('.mbti-radio-dot');
+                        const checkIcon = option.querySelector('.mbti-check-icon');
+                        circle.classList.remove('border-purple-500', 'bg-purple-100');
+                        circle.classList.add('border-gray-300');
+                        dot.classList.add('hidden');
+                        checkIcon.classList.add('hidden');
+                    });
+                    
+                    // 선택된 답변 옵션 스타일 적용
+                    if (this.checked) {
+                        const label = this.closest('label');
+                        label.classList.remove('border-gray-200');
+                        label.classList.add('border-purple-500', 'bg-purple-100', 'ring-2', 'ring-purple-200', 'selected');
+                        
+                        const circle = label.querySelector('.mbti-radio-circle');
+                        const dot = label.querySelector('.mbti-radio-dot');
+                        const checkIcon = label.querySelector('.mbti-check-icon');
+                        circle.classList.remove('border-gray-300');
+                        circle.classList.add('border-purple-500', 'bg-purple-100');
+                        dot.classList.remove('hidden');
+                        checkIcon.classList.remove('hidden');
+                        
+                        console.log('선택된 답변 스타일 적용 완료');
+                    }
+                });
+            });
+            
+            // 이전/다음 버튼 상태 업데이트
+            const prevBtn = document.getElementById('mbtiPrevBtn');
+            const nextBtn = document.getElementById('mbtiNextBtn');
+            
+            if (mbtiCurrentQuestion === 0) {
+                prevBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+            }
+            
+            if (mbtiCurrentQuestion === mbtiQuestions.length - 1) {
+                nextBtn.innerHTML = '<i class="fas fa-check mr-2"></i>결과 보기';
+            } else {
+                nextBtn.innerHTML = '다음 <i class="fas fa-arrow-right ml-2"></i>';
+            }
+        }
+
+        // 다음 질문
+        function nextMBTIQuestion() {
+            const selectedAnswer = document.querySelector('input[name="mbtiAnswer"]:checked');
+            
+            if (!selectedAnswer) {
+                alert('답을 선택해주세요!');
+                return;
+            }
+            
+            mbtiAnswers[mbtiCurrentQuestion] = selectedAnswer.value;
+            
+            if (mbtiCurrentQuestion === mbtiQuestions.length - 1) {
+                showMBTIResult();
+            } else {
+                mbtiCurrentQuestion++;
+                showMBTIQuestion();
+            }
+        }
+
+        // 이전 질문
+        function prevMBTIQuestion() {
+            if (mbtiCurrentQuestion > 0) {
+                mbtiCurrentQuestion--;
+                showMBTIQuestion();
+                
+                // 이전 답변 복원
+                if (mbtiAnswers[mbtiCurrentQuestion]) {
+                    const radio = document.querySelector(`input[value="${mbtiAnswers[mbtiCurrentQuestion]}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                        radio.dispatchEvent(new Event('change'));
+                    }
+                }
+            }
+        }
+
+        // MBTI 결과 표시
+        function showMBTIResult() {
+            const result = calculateMBTIResult();
+            
+            // 결과를 학생별로 저장
+            mbtiResults[mbtiSelectedStudent] = {
+                type: result.type,
+                emoji: result.emoji,
+                description: result.description,
+                strengths: result.strengths,
+                learningMethods: result.learningMethods,
+                careers: result.careers,
+                friendship: result.friendship,
+                testDate: new Date().toISOString().split('T')[0]
+            };
+            localStorage.setItem('mbtiResults', JSON.stringify(mbtiResults));
+            
+            // 결과 섹션 업데이트
+            updateMBTIResultsSection();
+            
+            document.getElementById('mbtiTestScreen').classList.add('hidden');
+            document.getElementById('mbtiResultScreen').classList.remove('hidden');
+            
+            document.getElementById('mbtiResultScreen').innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="text-center mb-8">
+                        <div class="mb-4">
+                            <div class="text-6xl mb-4">${result.emoji}</div>
+                            <h2 class="text-3xl font-bold text-gray-900 mb-2">${result.type}</h2>
+                            <p class="text-lg text-gray-600">${result.description}</p>
+                            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                                <p class="text-blue-800 font-medium">검사자: ${mbtiSelectedStudent}</p>
+                                <p class="text-blue-600 text-sm">검사일: ${new Date().toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-green-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-green-900 mb-4">
+                                <i class="fas fa-star mr-2"></i>성격의 강점
+                            </h3>
+                            <ul class="space-y-2 text-green-800">
+                                ${result.strengths.map(strength => `<li>• ${strength}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-blue-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-blue-900 mb-4">
+                                <i class="fas fa-graduation-cap mr-2"></i>학습 방법
+                            </h3>
+                            <ul class="space-y-2 text-blue-800">
+                                ${result.learningMethods.map(method => `<li>• ${method}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-yellow-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-yellow-900 mb-4">
+                                <i class="fas fa-briefcase mr-2"></i>추천 직업
+                            </h3>
+                            <ul class="space-y-2 text-yellow-800">
+                                ${result.careers.map(career => `<li>• ${career}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-purple-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-purple-900 mb-4">
+                                <i class="fas fa-users mr-2"></i>친구 관계
+                            </h3>
+                            <p class="text-purple-800">${result.friendship}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="restartMBTITest()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold mr-4">
+                            <i class="fas fa-redo mr-2"></i>다시 검사하기
+                        </button>
+                        <button onclick="showMBTIResultsList()" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold mr-4">
+                            <i class="fas fa-list mr-2"></i>전체 결과 보기
+                        </button>
+                        <button onclick="switchTab('home')" class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700 transition-colors text-lg font-semibold">
+                            <i class="fas fa-home mr-2"></i>홈으로
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // MBTI 결과 계산
+        function calculateMBTIResult() {
+            const counts = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+            
+            mbtiAnswers.forEach(answer => {
+                counts[answer]++;
+            });
+            
+            const type = 
+                (counts.E > counts.I ? 'E' : 'I') +
+                (counts.S > counts.N ? 'S' : 'N') +
+                (counts.T > counts.F ? 'T' : 'F') +
+                (counts.J > counts.P ? 'J' : 'P');
+            
+            return getMBTIResultData(type);
+        }
+
+        // MBTI 결과 데이터
+        function getMBTIResultData(type) {
+            const results = {
+                'ENFP': {
+                    emoji: '🌟',
+                    type: '열정적인 영감가',
+                    description: '새로운 아이디어로 가득한 창의적인 친구!',
+                    strengths: ['창의적이고 상상력이 풍부해요', '친구들과 잘 어울려요', '새로운 것을 배우는 것을 좋아해요'],
+                    learningMethods: ['그룹 활동을 통한 학습', '창의적인 프로젝트 수행', '토론과 발표 활동'],
+                    careers: ['예술가', '작가', '교사', '심리학자', '언론인'],
+                    friendship: '친구들과 함께 있을 때 가장 행복해하며, 새로운 경험을 나누는 것을 좋아해요!'
+                },
+                'ENFJ': {
+                    emoji: '👑',
+                    type: '따뜻한 리더',
+                    description: '친구들을 이끌고 도와주는 따뜻한 마음의 소유자!',
+                    strengths: ['친구들을 잘 도와줘요', '리더십이 있어요', '공감 능력이 뛰어나요'],
+                    learningMethods: ['팀 프로젝트 리더 역할', '봉사 활동 참여', '친구들과의 협력 학습'],
+                    careers: ['교사', '상담사', '사회복지사', '의사', '정치가'],
+                    friendship: '친구들의 문제를 해결해주고, 모두가 행복하도록 노력하는 따뜻한 마음을 가지고 있어요!'
+                },
+                'ENTP': {
+                    emoji: '💡',
+                    type: '똑똑한 발명가',
+                    description: '새로운 아이디어로 세상을 바꾸는 똑똑한 친구!',
+                    strengths: ['창의적이고 논리적이에요', '새로운 문제를 해결하는 것을 좋아해요', '토론을 즐겨요'],
+                    learningMethods: ['문제 해결 프로젝트', '토론과 논쟁', '실험과 탐구 활동'],
+                    careers: ['과학자', '발명가', '변호사', '기업가', '연구원'],
+                    friendship: '친구들과 함께 새로운 아이디어를 나누고, 흥미로운 토론을 즐기는 똑똑한 친구예요!'
+                },
+                'ENTJ': {
+                    emoji: '🎯',
+                    type: '똑똑한 지휘관',
+                    description: '목표를 향해 나아가는 똑똑한 리더!',
+                    strengths: ['계획을 잘 세워요', '리더십이 뛰어나요', '목표를 향해 꾸준히 노력해요'],
+                    learningMethods: ['프로젝트 관리', '리더십 역할', '목표 설정과 달성'],
+                    careers: ['CEO', '정치가', '군인', '변호사', '경영자'],
+                    friendship: '친구들을 이끌고 목표를 함께 달성하는 것을 좋아하는 리더십이 있는 친구예요!'
+                },
+                'ESFP': {
+                    emoji: '🎉',
+                    type: '재미있는 연예인',
+                    description: '모든 사람을 웃게 만드는 재미있는 친구!',
+                    strengths: ['밝고 긍정적이에요', '친구들과 잘 어울려요', '즉흥적이고 유연해요'],
+                    learningMethods: ['실습과 체험 활동', '그룹 활동', '게임과 놀이를 통한 학습'],
+                    careers: ['배우', '가수', '요리사', '여행 가이드', '이벤트 기획자'],
+                    friendship: '친구들을 웃게 만들고 즐거운 시간을 만들어주는 밝고 재미있는 친구예요!'
+                },
+                'ESFJ': {
+                    emoji: '🤗',
+                    type: '따뜻한 돌봄이',
+                    description: '모든 사람을 돌보는 따뜻한 마음의 소유자!',
+                    strengths: ['친절하고 배려심이 많아요', '책임감이 강해요', '협력하는 것을 좋아해요'],
+                    learningMethods: ['봉사 활동', '팀워크 중심 학습', '실용적인 기술 습득'],
+                    careers: ['간호사', '교사', '사회복지사', '상담사', '가족 상담사'],
+                    friendship: '친구들을 세심하게 돌보고, 모두가 편안하고 행복하도록 노력하는 따뜻한 친구예요!'
+                },
+                'ESTP': {
+                    emoji: '⚡',
+                    type: '활발한 모험가',
+                    description: '새로운 경험을 즐기는 활발한 친구!',
+                    strengths: ['활동적이고 에너지가 넘쳐요', '현실적이고 실용적이에요', '즉흥적이에요'],
+                    learningMethods: ['실습과 체험', '스포츠와 신체 활동', '현장 학습'],
+                    careers: ['운동선수', '경찰', '소방관', '요리사', '여행 가이드'],
+                    friendship: '친구들과 함께 활동하고 새로운 경험을 나누는 것을 좋아하는 활발한 친구예요!'
+                },
+                'ESTJ': {
+                    emoji: '📋',
+                    type: '책임감 있는 관리자',
+                    description: '모든 일을 체계적으로 관리하는 책임감 있는 친구!',
+                    strengths: ['책임감이 강해요', '계획을 잘 세워요', '리더십이 있어요'],
+                    learningMethods: ['체계적인 학습 계획', '리더십 역할', '실용적인 기술 습득'],
+                    careers: ['교사', '경영자', '공무원', '회계사', '군인'],
+                    friendship: '친구들을 이끌고 모든 일을 체계적으로 관리하는 책임감 있는 친구예요!'
+                },
+                'INFP': {
+                    emoji: '🦋',
+                    type: '꿈꾸는 예술가',
+                    description: '자신만의 세상을 꿈꾸는 창의적인 친구!',
+                    strengths: ['창의적이고 상상력이 풍부해요', '진정성이 있어요', '예술적 감각이 뛰어나요'],
+                    learningMethods: ['예술 활동', '독서와 글쓰기', '개인 프로젝트'],
+                    careers: ['작가', '화가', '음악가', '심리학자', '상담사'],
+                    friendship: '깊이 있는 대화를 나누고, 친구들의 진정한 모습을 이해하려고 노력하는 따뜻한 친구예요!'
+                },
+                'INFJ': {
+                    emoji: '🔮',
+                    type: '똑똑한 조언자',
+                    description: '친구들의 마음을 잘 이해하는 똑똑한 친구!',
+                    strengths: ['공감 능력이 뛰어나요', '똑똑하고 통찰력이 있어요', '친구들을 잘 도와줘요'],
+                    learningMethods: ['독서와 연구', '깊이 있는 토론', '개인적 성찰'],
+                    careers: ['심리학자', '상담사', '작가', '교사', '연구원'],
+                    friendship: '친구들의 마음을 깊이 이해하고, 진정한 조언을 해주는 똑똑하고 따뜻한 친구예요!'
+                },
+                'INTP': {
+                    emoji: '🧠',
+                    type: '똑똑한 사색가',
+                    description: '새로운 지식을 탐구하는 똑똑한 친구!',
+                    strengths: ['논리적이고 똑똑해요', '독립적이에요', '새로운 것을 배우는 것을 좋아해요'],
+                    learningMethods: ['독립적인 연구', '논리적 사고 훈련', '새로운 지식 탐구'],
+                    careers: ['과학자', '프로그래머', '연구원', '철학자', '수학자'],
+                    friendship: '깊이 있는 지적 대화를 나누고, 새로운 아이디어를 함께 탐구하는 똑똑한 친구예요!'
+                },
+                'INTJ': {
+                    emoji: '🎯',
+                    type: '똑똑한 전략가',
+                    description: '미래를 계획하는 똑똑한 친구!',
+                    strengths: ['전략적 사고가 뛰어나요', '독립적이에요', '목표를 향해 꾸준히 노력해요'],
+                    learningMethods: ['전략적 계획 수립', '독립적인 연구', '장기적 목표 설정'],
+                    careers: ['과학자', '엔지니어', '경영자', '연구원', '건축가'],
+                    friendship: '친구들과 함께 장기적인 목표를 세우고, 똑똑한 계획을 함께 세우는 친구예요!'
+                },
+                'ISFP': {
+                    emoji: '🎨',
+                    type: '예술적인 모험가',
+                    description: '자신만의 방식으로 세상을 탐험하는 예술적인 친구!',
+                    strengths: ['예술적 감각이 뛰어나요', '유연하고 적응력이 좋아요', '친절하고 따뜻해요'],
+                    learningMethods: ['예술 활동', '체험과 탐험', '개인적 성찰'],
+                    careers: ['화가', '음악가', '요리사', '사진작가', '디자이너'],
+                    friendship: '친구들과 함께 예술적 활동을 즐기고, 아름다운 것들을 함께 나누는 예술적인 친구예요!'
+                },
+                'ISFJ': {
+                    emoji: '🛡️',
+                    type: '보호하는 수호자',
+                    description: '친구들을 보호하고 돌보는 따뜻한 친구!',
+                    strengths: ['배려심이 많아요', '책임감이 강해요', '친구들을 잘 돌봐줘요'],
+                    learningMethods: ['봉사 활동', '실용적인 기술 습득', '협력 학습'],
+                    careers: ['간호사', '교사', '사회복지사', '상담사', '가족 상담사'],
+                    friendship: '친구들을 세심하게 돌보고, 모든 사람이 안전하고 행복하도록 노력하는 따뜻한 친구예요!'
+                },
+                'ISTP': {
+                    emoji: '🔧',
+                    type: '똑똑한 장인',
+                    description: '손으로 만드는 것을 좋아하는 똑똑한 친구!',
+                    strengths: ['실용적이고 논리적이에요', '손재주가 좋아요', '독립적이에요'],
+                    learningMethods: ['실습과 체험', '기술 습득', '문제 해결'],
+                    careers: ['엔지니어', '기술자', '운동선수', '요리사', '건축가'],
+                    friendship: '친구들과 함께 만들고, 실용적인 도움을 주는 똑똑하고 실용적인 친구예요!'
+                },
+                'ISTJ': {
+                    emoji: '📚',
+                    type: '성실한 관리자',
+                    description: '모든 일을 성실하게 하는 책임감 있는 친구!',
+                    strengths: ['성실하고 책임감이 강해요', '체계적이에요', '꾸준히 노력해요'],
+                    learningMethods: ['체계적인 학습', '규칙과 절차 준수', '실용적인 기술 습득'],
+                    careers: ['회계사', '공무원', '교사', '의사', '법관'],
+                    friendship: '친구들을 위해 꾸준히 노력하고, 모든 일을 성실하게 하는 믿을 수 있는 친구예요!'
+                }
+            };
+            
+            return results[type] || results['ENFP'];
+        }
+
+        // MBTI 전체 결과 목록 보기
+        function showMBTIResultsList() {
+            const results = Object.keys(mbtiResults);
+            
+            if (results.length === 0) {
+                document.getElementById('mbtiResultScreen').innerHTML = `
+                    <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                        <div class="mb-6">
+                            <i class="fas fa-clipboard-list text-6xl text-gray-400 mb-4"></i>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">MBTI 검사 결과</h2>
+                            <p class="text-gray-600">아직 검사 결과가 없습니다.</p>
+                        </div>
+                        <button onclick="restartMBTITest()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold">
+                            <i class="fas fa-play mr-2"></i>검사 시작하기
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            document.getElementById('mbtiResultScreen').innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">MBTI 검사 결과 목록</h2>
+                        <p class="text-lg text-gray-600">학생별 성격 검사 결과를 확인할 수 있습니다.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        ${results.map(student => {
+                            const result = mbtiResults[student];
+                            return `
+                                <div class="bg-gray-50 rounded-lg p-6 border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors cursor-pointer" onclick="showStudentMBTIResult('${student}')">
+                                    <div class="text-center">
+                                        <div class="text-4xl mb-3">${result.emoji}</div>
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-2">${student}</h3>
+                                        <p class="text-lg font-medium text-purple-600 mb-2">${result.type}</p>
+                                        <p class="text-sm text-gray-600 mb-3">${result.description}</p>
+                                        <div class="text-xs text-gray-500">
+                                            검사일: ${new Date(result.testDate).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="restartMBTITest()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold mr-4">
+                            <i class="fas fa-plus mr-2"></i>새로운 검사
+                        </button>
+                        <button onclick="switchTab('home')" class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700 transition-colors text-lg font-semibold">
+                            <i class="fas fa-home mr-2"></i>홈으로
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 특정 학생의 MBTI 결과 보기
+        function showStudentMBTIResult(studentName) {
+            const result = mbtiResults[studentName];
+            
+            document.getElementById('mbtiResultScreen').innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="text-center mb-8">
+                        <div class="mb-4">
+                            <div class="text-6xl mb-4">${result.emoji}</div>
+                            <h2 class="text-3xl font-bold text-gray-900 mb-2">${result.type}</h2>
+                            <p class="text-lg text-gray-600">${result.description}</p>
+                            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                                <p class="text-blue-800 font-medium">검사자: ${studentName}</p>
+                                <p class="text-blue-600 text-sm">검사일: ${new Date(result.testDate).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-green-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-green-900 mb-4">
+                                <i class="fas fa-star mr-2"></i>성격의 강점
+                            </h3>
+                            <ul class="space-y-2 text-green-800">
+                                ${result.strengths.map(strength => `<li>• ${strength}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-blue-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-blue-900 mb-4">
+                                <i class="fas fa-graduation-cap mr-2"></i>학습 방법
+                            </h3>
+                            <ul class="space-y-2 text-blue-800">
+                                ${result.learningMethods.map(method => `<li>• ${method}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-yellow-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-yellow-900 mb-4">
+                                <i class="fas fa-briefcase mr-2"></i>추천 직업
+                            </h3>
+                            <ul class="space-y-2 text-yellow-800">
+                                ${result.careers.map(career => `<li>• ${career}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-purple-50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-purple-900 mb-4">
+                                <i class="fas fa-users mr-2"></i>친구 관계
+                            </h3>
+                            <p class="text-purple-800">${result.friendship}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="showMBTIResultsList()" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold mr-4">
+                            <i class="fas fa-arrow-left mr-2"></i>목록으로
+                        </button>
+                        <button onclick="restartMBTITest()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold mr-4">
+                            <i class="fas fa-redo mr-2"></i>다시 검사하기
+                        </button>
+                        <button onclick="switchTab('home')" class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700 transition-colors text-lg font-semibold">
+                            <i class="fas fa-home mr-2"></i>홈으로
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // MBTI 검사 다시 시작
+        function restartMBTITest() {
+            mbtiCurrentQuestion = 0;
+            mbtiAnswers = [];
+            mbtiSelectedStudent = null;
+            
+            document.getElementById('mbtiResultScreen').classList.add('hidden');
+            document.getElementById('mbtiStartScreen').classList.remove('hidden');
+            
+            // 학생 선택 화면 다시 로드
+            loadMBTIStudentSelection();
+            
+            // 검사 시작 버튼 비활성화
+            const startBtn = document.getElementById('mbtiStartBtn');
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        // 알림 표시
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // 페이지 로드 시 첫 번째 탭 활성화 및 일기 목록 업데이트
+        document.addEventListener('DOMContentLoaded', function() {
+            // 저장된 모드 상태로 초기화 (처음 방문시 관리자 모드)
+            isAdminMode = localStorage.getItem('isAdminMode') === 'true' || localStorage.getItem('isAdminMode') === null;
+            
+            switchTab('home');
+            updateRecentDiaries();
+            updateModeUI(); // 모드 UI 초기화
+            updateModeBasedContent(); // 모드에 따른 콘텐츠 업데이트
+            updateSettingsDisplay(); // 설정 표시 초기화
+            renderCalendar(); // 달력 초기화
+            updateMBTIResultsSection(); // MBTI 결과 섹션 초기화
+        });
+    </script>
+</body>
+</html>
